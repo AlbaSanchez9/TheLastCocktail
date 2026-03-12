@@ -832,7 +832,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  xrOrigin: {fileID: 5714512060768829088}
 --- !u!1 &5407887554445534821
 GameObject:
   m_ObjectHideFlags: 0
@@ -921,7 +920,7 @@ MonoBehaviour:
   m_Camera: {fileID: 2685503845412724008}
   m_OriginBaseGameObject: {fileID: 5714512060768829088}
   m_CameraFloorOffsetObject: {fileID: 5407887554445534821}
-  m_RequestedTrackingOriginMode: 0
+  m_RequestedTrackingOriginMode: 2
   m_CameraYOffset: 1.1176
 --- !u!114 &2875956342398236338
 MonoBehaviour:
