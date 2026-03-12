@@ -1,6 +1,6 @@
 ﻿using Unity.Netcode;
 using UnityEngine;
-using Unity.Netcode;
+
 
 public class NetworkPlayer : NetworkBehaviour
 {
