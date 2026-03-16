@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &443836664356323561
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1102944362699067057}
+  m_Layer: 0
+  m_Name: BarPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1102944362699067057
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 443836664356323561}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.23, y: 0.41, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2971956286363399624}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &451720435357839357
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,6 +267,7 @@ Transform:
   m_Children:
   - {fileID: 5988902151389898290}
   - {fileID: 4055024329198200274}
+  - {fileID: 1102944362699067057}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1818451834553207778
@@ -328,8 +360,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   patience: 30
   patienceBar: {fileID: 4564218501145416612}
+  drinkTime: 6
+  barPoint: {fileID: 1102944362699067057}
   stealChance: 0.2
-  gameManager: {fileID: 0}
+  moneyPrefab: {fileID: 4689986247026951019, guid: 72b3ddc556ee8864b993482c0ff718ba, type: 3}
 --- !u!1 &3167325482517406199
 GameObject:
   m_ObjectHideFlags: 0
@@ -396,8 +430,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a0128468c96ba942acb162f024b2544, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  customer: {fileID: 1223803269181319036}
-  recipeManager: {fileID: 0}
 --- !u!1 &4892987357507385123
 GameObject:
   m_ObjectHideFlags: 0

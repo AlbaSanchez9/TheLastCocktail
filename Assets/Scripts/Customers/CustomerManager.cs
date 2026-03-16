@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CustomerManager : MonoBehaviour
 {
     [SerializeField] private GameObject customerPrefab;
-    [SerializeField] private Transform spawnPoint;
+    [SerializeField] private List<Transform> queueSpots;
 
     [SerializeField] private float spawnInterval = 20f;
 
@@ -13,6 +14,8 @@ public class CustomerManager : MonoBehaviour
 
     private float timer;
 
+    private List<Customer> customers = new List<Customer>();
+
     private void Update()
     {
         timer += Time.deltaTime;
@@ -21,12 +24,18 @@ public class CustomerManager : MonoBehaviour
         {
             SpawnCustomer();
             timer = 0f;
+            spawnInterval = Mathf.Max(4f, spawnInterval - 0.3f);
         }
     }
 
     private void SpawnCustomer()
     {
-        GameObject obj = Instantiate(customerPrefab, spawnPoint.position, spawnPoint.rotation);
+        if (customers.Count >= queueSpots.Count)
+            return;
+
+        Transform spot = queueSpots[customers.Count];
+
+        GameObject obj = Instantiate(customerPrefab, spot.position, spot.rotation);
 
         Customer customer = obj.GetComponent<Customer>();
 
@@ -34,6 +43,23 @@ public class CustomerManager : MonoBehaviour
 
         customer.SetOrder(order);
 
+        customers.Add(customer);
+
         orderUI.UpdateOrder(order.Recipe.CocktailName);
+    }
+
+    public void CustomerLeft(Customer customer)
+    {
+        customers.Remove(customer);
+
+        ReorganizeQueue();
+    }
+
+    private void ReorganizeQueue()
+    {
+        for (int i = 0; i < customers.Count; i++)
+        {
+            customers[i].MoveTo(queueSpots[i]);
+        }
     }
 }

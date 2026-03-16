@@ -29,6 +29,7 @@ public class Glass : MonoBehaviour
     public void Clean()
     {
         isDirty = false;
+        ingredients.Clear();  
     }
 
     public bool IsDirty()
