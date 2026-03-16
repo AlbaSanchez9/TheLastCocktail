@@ -832,6 +832,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  root: {fileID: 0}
+  head: {fileID: 0}
+  leftHand: {fileID: 0}
+  rightHand: {fileID: 0}
+  meshTodisable: []
 --- !u!1 &5407887554445534821
 GameObject:
   m_ObjectHideFlags: 0

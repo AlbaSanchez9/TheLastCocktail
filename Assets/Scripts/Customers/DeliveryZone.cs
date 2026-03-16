@@ -14,11 +14,19 @@ public class DeliveryZone : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         Glass glass = other.GetComponent<Glass>();
+        if (glass != null)
+        {
+            string cocktail = recipeManager.CheckGlass(glass);
+            customer.TryServeDrink(cocktail, glass);
+            return;
+        }
 
-        if (glass == null) return;
-
-        string cocktail = recipeManager.CheckGlass(glass);
-
-        customer.TryServeDrink(cocktail, glass);
+        SnackPrefab snack = other.GetComponent<SnackPrefab>();
+        if (snack != null)
+        {
+            bool correct = customer.TryServeSnack(snack.snackType);
+            if (correct)
+                Destroy(other.gameObject);
+        }
     }
 }

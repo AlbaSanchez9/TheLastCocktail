@@ -10,6 +10,8 @@ public class RecipeManager : MonoBehaviour
     {
         var ingredients = glass.GetIngredients();
 
+        Debug.Log("Ingredientes en vaso: " + string.Join(", ", ingredients));
+
         foreach (var recipe in recipes)
         {
             if (MatchRecipe(recipe, ingredients))
@@ -26,8 +28,14 @@ public class RecipeManager : MonoBehaviour
 
         foreach (var ingredient in recipe.Ingredients)
         {
-            if (!ingredients.Contains(ingredient))
-                return false;
+            //if (!ingredients.Contains(ingredient))
+            //    return false; ////Sin importar el orden de los ingredientes
+
+            for (int i = 0; i < recipe.Ingredients.Count; i++)
+            {
+                if (recipe.Ingredients[i] != ingredients[i])
+                    return false;
+            }
         }
 
         return true;

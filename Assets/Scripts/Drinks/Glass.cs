@@ -1,11 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class Glass : MonoBehaviour
 {
     private List<string> ingredients = new List<string>();
 
     [SerializeField] private bool isDirty;
+
+    private XRGrabInteractable grab;
+    private Rigidbody rb;
+
+    private void Awake()
+    {
+        grab = GetComponent<XRGrabInteractable>();
+        rb = GetComponent<Rigidbody>();
+    }
 
     public void AddIngredient(string ingredient)
     {
@@ -37,32 +47,21 @@ public class Glass : MonoBehaviour
         return isDirty;
     }
 
-    //public string CheckRecipe(List<CocktailRecipe> recipes)
-    //{
-    //    foreach (var recipe in recipes)
-    //    {
-    //        if (MatchRecipe(recipe))
-    //        {
-    //            return recipe.CocktailName;
-    //        }
-    //    }
+    public void LockGlass()
+    {
+        if (grab != null)
+            grab.enabled = false;
 
-    //    return null;
-    //}
+        if (rb != null)
+            rb.isKinematic = true;
+    }
 
-    //private bool MatchRecipe(CocktailRecipe recipe)
-    //{
-    //    var recipeIngredients = recipe.Ingredients;
+    public void UnlockGlass()
+    {
+        if (grab != null)
+            grab.enabled = true;
 
-    //    if (recipeIngredients.Count != ingredients.Count)
-    //        return false;
-
-    //    foreach (var ingredient in recipeIngredients)
-    //    {
-    //        if (!ingredients.Contains(ingredient))
-    //            return false;
-    //    }
-
-    //    return true;
-    //}
+        if (rb != null)
+            rb.isKinematic = false;
+    }
 }
