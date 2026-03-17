@@ -32,6 +32,7 @@ public class Customer : MonoBehaviour
 
     [Header("Snack")]
     private SnackType snackOrder;
+    private bool snackFailedAlready = false;
 
     private bool wantsDrink = false;
     private bool wantsSnack = false;
@@ -147,6 +148,8 @@ public class Customer : MonoBehaviour
         {
             Debug.Log("Pedido de bebida correcto!");
 
+            GameManager.Instance.AddCorrectDrink();
+
             drinkServed = true;
             servedGlass = glass;
 
@@ -170,6 +173,7 @@ public class Customer : MonoBehaviour
         else
         {
             Debug.Log("Bebida incorrecta!");
+            GameManager.Instance.AddWrongDrink();
         }
     }
 
@@ -180,6 +184,9 @@ public class Customer : MonoBehaviour
         if (deliveredSnack == snackOrder)
         {
             snackServed = true;
+
+            GameManager.Instance.AddCorrectSnack();
+
             if (!wantsDrink || drinkServed) StartDrinking();
             else ApplyPartialDeliveryBonus();
             return true;
@@ -187,6 +194,13 @@ public class Customer : MonoBehaviour
         else
         {
             Debug.Log("Snack incorrecto");
+
+            if (!snackFailedAlready)
+            {
+                GameManager.Instance.AddWrongSnack();
+                snackFailedAlready = true;
+            }
+
             return false;
         }
     }

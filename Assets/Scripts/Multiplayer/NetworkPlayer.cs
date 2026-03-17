@@ -1,5 +1,6 @@
 ﻿using Unity.Netcode;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class NetworkPlayer : NetworkBehaviour
 {
@@ -26,6 +27,7 @@ public class NetworkPlayer : NetworkBehaviour
 
     private void Update()
     {
+
         if (IsOwner)
         {
             root.position = VRRigReference.Singleton.root.position;
