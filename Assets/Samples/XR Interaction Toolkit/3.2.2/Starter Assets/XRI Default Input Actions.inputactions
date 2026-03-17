@@ -1339,18 +1339,9 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "New action",
-                    "type": "Value",
-                    "id": "77cf62c8-0347-4a5a-accb-8ab667c5c6ed",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "Sector(directions=-1,sweepBehavior=2)",
-                    "initialStateCheck": true
-                },
-                {
                     "name": "Move",
                     "type": "Value",
-                    "id": "4124eb9c-9ce1-47a0-a027-659d831cbc59",
+                    "id": "dfa7f0a2-a36a-46e1-98af-353911b98bf4",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
@@ -1415,18 +1406,7 @@
                 },
                 {
                     "name": "",
-                    "id": "e083e660-2c82-48c8-9ad8-5b41a55572c8",
-                    "path": "",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "New action",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a2490025-84c3-4f0e-be69-1dc827bac055",
+                    "id": "913c1c60-dd01-4fbd-8591-0df2dac39cd5",
                     "path": "<XRController>{LeftHand}/{Primary2DAxis}",
                     "interactions": "Sector(directions=-1,sweepBehavior=1),Sector(directions=-1,sweepBehavior=2)",
                     "processors": "",

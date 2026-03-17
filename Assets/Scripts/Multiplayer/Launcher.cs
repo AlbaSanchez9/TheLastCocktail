@@ -1,5 +1,9 @@
+﻿using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
+using Unity.Services.Authentication;
+using Unity.Services.Core;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -8,12 +12,11 @@ using UnityEngine.SceneManagement;
 public class Launcher : MonoBehaviour
 {
     [SerializeField] private string gameSceneName = "GameScene";
-
     private static bool instanceExists = false;
+    private ISession currentSession;
 
     void Awake()
     {
-        // Si ya existe una instancia, destruir esta
         if (instanceExists)
         {
             Destroy(gameObject);
@@ -24,20 +27,72 @@ public class Launcher : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    void Start()
+    async void Start()
     {
+        await InitializeServicesAsync();
+
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnServerStarted += HandleServerStarted;
     }
 
-    public void StartAsHost()
+    private async Task InitializeServicesAsync()
     {
-        NetworkManager.Singleton.StartHost();
+        await UnityServices.InitializeAsync();
+
+        if (!AuthenticationService.Instance.IsSignedIn)
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+        Debug.Log("Servicios inicializados. Player ID: " + AuthenticationService.Instance.PlayerId);
     }
 
-    public void StartAsClient()
+
+    public async Task StartAsHost()
     {
-        NetworkManager.Singleton.StartClient();
+        try
+        {
+            var options = new SessionOptions()
+            {
+                MaxPlayers = 4
+            }.WithRelayNetwork();
+
+            currentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
+
+            Debug.Log("Sesión creada. Código: " + currentSession.Code);
+
+            NetworkManager.Singleton.StartHost();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Error al crear sesión: " + e.Message);
+        }
+    }
+
+    public async Task StartAsClientAuto()
+    {
+        try
+        {
+            var sessions = await MultiplayerService.Instance.QuerySessionsAsync(
+                new QuerySessionsOptions()
+            );
+
+            if (sessions.Sessions.Count == 0)
+            {
+                Debug.LogError("No hay sesiones disponibles");
+                return;
+            }
+
+            currentSession = await MultiplayerService.Instance.JoinSessionByIdAsync(
+                sessions.Sessions[0].Id
+            );
+
+            Debug.Log("Unido automáticamente a sesión");
+
+            NetworkManager.Singleton.StartClient();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("Error al unirse: " + e.Message);
+        }
     }
 
     private void HandleServerStarted()
@@ -51,23 +106,33 @@ public class Launcher : MonoBehaviour
         {
             Debug.Log("Cliente conectado: " + clientId);
 
-            if (SceneManager.GetActiveScene().name != gameSceneName)
+            if (NetworkManager.Singleton.ConnectedClients.Count > 1)
             {
-                NetworkManager.Singleton.SceneManager.LoadScene(
-                    gameSceneName,
-                    LoadSceneMode.Single
-                );
+                if (SceneManager.GetActiveScene().name != gameSceneName)
+                {
+                    NetworkManager.Singleton.SceneManager.LoadScene(
+                        gameSceneName,
+                        LoadSceneMode.Single
+                    );
+                }
             }
         }
     }
 
-    void OnDestroy()
+    async void OnDestroy()
     {
         instanceExists = false;
+
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientConnectedCallback -= OnClientConnected;
             NetworkManager.Singleton.OnServerStarted -= HandleServerStarted;
+        }
+
+        if (currentSession != null)
+        {
+            await currentSession.LeaveAsync();
+            currentSession = null;
         }
     }
 }
