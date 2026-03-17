@@ -8,9 +8,25 @@ public class ResultsButtons : NetworkBehaviour
         RestartServerRpc();
     }
 
-    public void OnBackToLobbyPressed()
+    public void OnQuitPressed()
     {
-        BackToLobbyServerRpc();
+        QuitGameServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void QuitGameServerRpc()
+    {
+        QuitClientRpc();
+    }
+
+    [ClientRpc]
+    private void QuitClientRpc()
+    {
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -18,15 +34,6 @@ public class ResultsButtons : NetworkBehaviour
     {
         NetworkManager.Singleton.SceneManager.LoadScene(
             "BarScene",
-            UnityEngine.SceneManagement.LoadSceneMode.Single
-        );
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void BackToLobbyServerRpc()
-    {
-        NetworkManager.Singleton.SceneManager.LoadScene(
-            "MenuScene",
             UnityEngine.SceneManagement.LoadSceneMode.Single
         );
     }

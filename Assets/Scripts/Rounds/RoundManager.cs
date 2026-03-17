@@ -49,7 +49,6 @@ public class RoundManager : NetworkBehaviour
         roundActive = false;
 
         Debug.Log("RONDA TERMINADA");
-
         ShowResultsClientRpc();
     }
 
@@ -58,6 +57,7 @@ public class RoundManager : NetworkBehaviour
     {
         UIResults.Instance.Show();
     }
+
 
     public bool IsRoundActive()
     {

@@ -32,6 +32,8 @@ public class CustomerManager : MonoBehaviour
 
     private void SpawnCustomer()
     {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
         if (customers.Count >= queueSpots.Count)
             return;
 

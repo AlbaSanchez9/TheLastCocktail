@@ -10,6 +10,8 @@ public class Money : XRGrabInteractable
 
     protected override void OnSelectEntered(SelectEnterEventArgs args)
     {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
         base.OnSelectEntered(args);
 
         gameManager = FindFirstObjectByType<GameManager>();

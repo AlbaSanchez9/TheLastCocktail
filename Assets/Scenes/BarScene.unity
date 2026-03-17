@@ -281,7 +281,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Lobby
+  m_text: Quit
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3218,7 +3218,7 @@ GameObject:
   - component: {fileID: 1886536815}
   - component: {fileID: 1886536814}
   m_Layer: 0
-  m_Name: LobbyButton
+  m_Name: QuitButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3290,7 +3290,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1445620149}
         m_TargetAssemblyTypeName: ResultsButtons, Assembly-CSharp
-        m_MethodName: OnBackToLobbyPressed
+        m_MethodName: OnQuitPressed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

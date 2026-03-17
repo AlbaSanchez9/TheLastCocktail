@@ -13,6 +13,8 @@ public class DeliveryZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
         Glass glass = other.GetComponent<Glass>();
         if (glass != null)
         {

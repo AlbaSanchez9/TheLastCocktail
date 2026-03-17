@@ -230,6 +230,8 @@ public class Customer : MonoBehaviour
 
     private void Update()
     {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
         switch (state)
         {
             case CustomerState.Waiting:

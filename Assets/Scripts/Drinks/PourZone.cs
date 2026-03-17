@@ -9,6 +9,8 @@ public class PourZone : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
         IngredientBottle bottle = other.GetComponent<IngredientBottle>();
 
         if (bottle == null) return;

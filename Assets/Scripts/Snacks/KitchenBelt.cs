@@ -19,6 +19,8 @@ public class KitchenBelt : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
         InfiniteSnackTicket ticket = other.GetComponent<InfiniteSnackTicket>();
         if (ticket != null && !ticket.IsBeingProcessed)
         {
