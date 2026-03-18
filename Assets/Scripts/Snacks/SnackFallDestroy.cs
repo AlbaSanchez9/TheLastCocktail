@@ -1,13 +1,8 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-public class IngredientBottle : XRGrabInteractable
+public class SnackFallDestroy : MonoBehaviour
 {
-    [SerializeField] private string ingredientName;
-    public string IngredientName => ingredientName;
-
-    [Header("Caída")]
     [SerializeField] private float fallYThreshold = -1f;
     [SerializeField] private float timeOnFloor = 3f;
 

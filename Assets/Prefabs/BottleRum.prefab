@@ -20,8 +20,9 @@ GameObject:
   - component: {fileID: 3971466573325399192}
   - component: {fileID: 207218783178253843}
   - component: {fileID: 6824528013209173418}
+  - component: {fileID: 6816660462342063851}
   m_Layer: 0
-  m_Name: Bottle
+  m_Name: BottleRum
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -192,7 +193,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1041227755
+  GlobalObjectIdHash: 3785091253
   InScenePlacedSourceGlobalObjectIdHash: 2741455110
   DeferredDespawnTick: 0
   Ownership: 1
@@ -409,3 +410,18 @@ MonoBehaviour:
   m_MaxLinearVelocityDelta: 10
   m_MaxAngularVelocityDelta: 20
   ingredientName: Rum
+  fallYThreshold: 0.2
+  timeOnFloor: 3
+--- !u!114 &6816660462342063851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1510866348330926740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a68eb9db294bfc44b7887cb99094fc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  respawnDelay: 3

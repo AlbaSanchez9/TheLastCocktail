@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 7465587028165977541}
   - component: {fileID: 107011328709728443}
   - component: {fileID: 3870126897073561174}
+  - component: {fileID: -7668917301229019035}
   m_Layer: 0
   m_Name: Nachos
   m_TagString: Untagged
@@ -303,3 +304,17 @@ MonoBehaviour:
   m_MinimumScaleRatio: 0.25
   m_MaximumScaleRatio: 2
   m_ScaleMultiplier: 0.25
+--- !u!114 &-7668917301229019035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5417981388680255656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2ba0824a11629b4fb16ae5424ff1d6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fallYThreshold: 0.2
+  timeOnFloor: 3

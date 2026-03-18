@@ -1,10 +1,10 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GlassSpawner : MonoBehaviour
 {
-    [Header("Configuraci�n")]
+    [Header("Configuración")]
     [SerializeField] private GameObject glassPrefab;
     [SerializeField] private Transform[] slots;
     [SerializeField] private float respawnDelay = 3f;
@@ -112,6 +112,7 @@ public class GlassSpawner : MonoBehaviour
         if (glass != null)
         {
             glass.SetSpawner(this);
+            glass.UnlockGlass(); // ← AÑADE ESTO
             slotGlass[slotIndex] = glass;
             slotOccupied[slotIndex] = true;
         }

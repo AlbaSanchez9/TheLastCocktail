@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -10,6 +11,7 @@ public class Glass : MonoBehaviour
 
     [Header("Caída")]
     [SerializeField] private float fallYThreshold = -1f;
+    [SerializeField] private float timeOnFloor = 3f;
     private bool falling = false;
 
     private XRGrabInteractable grab;
@@ -39,9 +41,17 @@ public class Glass : MonoBehaviour
         {
             falling = true;
             Debug.Log("Vaso caído al suelo");
-            spawner?.NotifyGlassFell(this);
-            Destroy(gameObject);
+            //spawner?.NotifyGlassFell(this);
+            //Destroy(gameObject);
+            StartCoroutine(WaitThenNotifyFall());
         }
+    }
+
+    private IEnumerator WaitThenNotifyFall()
+    {
+        yield return new WaitForSeconds(timeOnFloor);
+        spawner?.NotifyGlassFell(this);
+        Destroy(gameObject);
     }
 
     private void OnGrabbed(SelectEnterEventArgs args)

@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1917071687163257293}
   - component: {fileID: 7888843614325164523}
   - component: {fileID: 2618760659399718143}
+  - component: {fileID: -926202523592940967}
   m_Layer: 0
   m_Name: Chips
   m_TagString: Untagged
@@ -303,3 +304,17 @@ MonoBehaviour:
   m_MinimumScaleRatio: 0.25
   m_MaximumScaleRatio: 2
   m_ScaleMultiplier: 0.25
+--- !u!114 &-926202523592940967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2006494620614035469}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2ba0824a11629b4fb16ae5424ff1d6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fallYThreshold: 0.2
+  timeOnFloor: 3

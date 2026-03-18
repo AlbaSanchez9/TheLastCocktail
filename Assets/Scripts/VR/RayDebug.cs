@@ -12,11 +12,11 @@ public class RayDebug : MonoBehaviour
         // Raycast para ver qué golpea
         if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, 10f))
         {
-            Debug.Log($"🎯 Rayo golpea: {hit.collider.gameObject.name}");
+            Debug.Log($"Rayo golpea: {hit.collider.gameObject.name}");
         }
         else
         {
-            Debug.Log("❌ Rayo no golpea nada");
+            Debug.Log("Rayo no golpea nada");
         }
     }
 }
