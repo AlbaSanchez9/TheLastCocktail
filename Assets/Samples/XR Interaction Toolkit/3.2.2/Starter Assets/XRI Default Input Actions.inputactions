@@ -1341,7 +1341,7 @@
                 {
                     "name": "Move",
                     "type": "Value",
-                    "id": "dfa7f0a2-a36a-46e1-98af-353911b98bf4",
+                    "id": "4ced0dbf-2040-465b-9b17-af58a9f44877",
                     "expectedControlType": "Vector2",
                     "processors": "",
                     "interactions": "",
@@ -1406,7 +1406,7 @@
                 },
                 {
                     "name": "",
-                    "id": "913c1c60-dd01-4fbd-8591-0df2dac39cd5",
+                    "id": "269b4cb1-982c-4115-9d40-5d5a53661786",
                     "path": "<XRController>{LeftHand}/{Primary2DAxis}",
                     "interactions": "Sector(directions=-1,sweepBehavior=1),Sector(directions=-1,sweepBehavior=2)",
                     "processors": "",

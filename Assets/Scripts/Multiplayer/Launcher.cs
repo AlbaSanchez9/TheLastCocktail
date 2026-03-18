@@ -108,14 +108,6 @@ public class Launcher : MonoBehaviour
         if (!NetworkManager.Singleton.IsServer) return;
 
         Debug.Log("Cliente conectado: " + clientId);
-
-        //if (NetworkManager.Singleton.ConnectedClients.Count >= 2)
-        //{
-        //    NetworkManager.Singleton.SceneManager.LoadScene(
-        //        gameSceneName,
-        //        LoadSceneMode.Single
-        //    );
-        //}
     }
     void OnDestroy()
     {

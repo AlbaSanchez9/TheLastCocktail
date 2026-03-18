@@ -10,6 +10,7 @@ Library: C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempbur
 --target-framework=NetFramework
 --generate-link-xml=Temp\burst.link.xml
 --temp-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\Burst
+--debug=Full
 --key-folder=C:/Program Files/Unity/Hub/Editor/6000.0.59f2/Editor/Data/PlaybackEngines/AndroidPlayer
 --decode-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Library\Burst
 --output=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempburstlibs\arm64-v8a\lib_burst_generated
@@ -31,6 +32,7 @@ Library: C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempbur
 --target-framework=NetFramework
 --generate-link-xml=Temp\burst.link.xml
 --temp-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\Burst
+--debug=Full
 --key-folder=C:/Program Files/Unity/Hub/Editor/6000.0.59f2/Editor/Data/PlaybackEngines/AndroidPlayer
 --decode-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Library\Burst
 --output=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempburstlibs\arm64-v8a\lib_burst_generated
@@ -149,6 +151,7 @@ Library: C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempbur
 --float-mode=Fast
 --generate-link-xml=Temp\burst.link.xml
 --temp-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\Burst
+--debug=Full
 --key-folder=C:/Program Files/Unity/Hub/Editor/6000.0.59f2/Editor/Data/PlaybackEngines/AndroidPlayer
 --decode-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Library\Burst
 --output=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempburstlibs\arm64-v8a\lib_burst_generated
@@ -167,6 +170,7 @@ Library: C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempbur
 --target-framework=NetFramework
 --generate-link-xml=Temp\burst.link.xml
 --temp-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\Burst
+--debug=Full
 --key-folder=C:/Program Files/Unity/Hub/Editor/6000.0.59f2/Editor/Data/PlaybackEngines/AndroidPlayer
 --decode-folder=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Library\Burst
 --output=C:\Users\Alba\Documents\GitHub\TheLastCocktail\Temp\BurstOutput\tempburstlibs\arm64-v8a\lib_burst_generated
