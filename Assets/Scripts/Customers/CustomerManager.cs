@@ -3,21 +3,29 @@ using UnityEngine;
 
 public class CustomerManager : MonoBehaviour
 {
-    [SerializeField] private GameObject customerPrefab;
-    [SerializeField] private List<Transform> queueSpots;
+    [Header("Prefabs")]
+    [SerializeField] private GameObject barCustomerPrefab;
+    [SerializeField] private GameObject tableCustomerPrefab;
 
+    [Header("Spots")]
+    [SerializeField] private List<Transform> barSpots;
+    [SerializeField] private List<Transform> tableSpots;
+
+
+    [Header("Config")]
     [SerializeField] private float spawnInterval = 20f;
-
+    [SerializeField] private float barCustomerChance = 0.5f; // 0.5 = 50% barra, 50% mesa
     [SerializeField] private OrderManager orderManager;
-
     [SerializeField] private Transform exitTransform;
 
     private float timer;
-
-    private List<Customer> customers = new List<Customer>();
+    private List<Customer> barCustomers = new List<Customer>();
+    private List<Customer> tableCustomers = new List<Customer>();
 
     private void Update()
     {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
         timer += Time.deltaTime;
 
         if (timer >= spawnInterval)
@@ -32,38 +40,62 @@ public class CustomerManager : MonoBehaviour
 
     private void SpawnCustomer()
     {
-        if (!RoundManager.Instance.IsRoundActive()) return;
+        //if (!RoundManager.Instance.IsRoundActive()) return;
 
-        if (customers.Count >= queueSpots.Count)
-            return;
+        //if (customers.Count >= queueSpots.Count)
+        //    return;
 
-        Transform freeSpot = GetFreeSpot();
-        if (freeSpot == null)
-            return;
+        //Transform freeSpot = GetFreeSpot();
+        //if (freeSpot == null)
+        //    return;
 
-        GameObject obj = Instantiate(customerPrefab, freeSpot.position, freeSpot.rotation);
-        Customer customer = obj.GetComponent<Customer>();
+        //GameObject obj = Instantiate(customerPrefab, freeSpot.position, freeSpot.rotation);
+        //Customer customer = obj.GetComponent<Customer>();
 
-        Order order = orderManager.GenerateOrder();
-        customer.SetOrder(order);
+        //Order order = orderManager.GenerateOrder();
+        //customer.SetOrder(order);
 
-        SnackType randomSnack = (SnackType)Random.Range(0, System.Enum.GetValues(typeof(SnackType)).Length);
-        customer.SetSnackOrder(randomSnack);
+        //SnackType randomSnack = (SnackType)Random.Range(0, System.Enum.GetValues(typeof(SnackType)).Length);
+        //customer.SetSnackOrder(randomSnack);
 
-        customers.Add(customer);
-        customer.SetManager(this);
-        customer.SetExitPoint(exitTransform);
+        //customers.Add(customer);
+        //customer.SetManager(this);
+        //customer.SetExitPoint(exitTransform);
+
+        bool spawnAtBar = Random.value < barCustomerChance;
+
+        if (spawnAtBar)
+            TrySpawnAt(barSpots, barCustomers, barCustomerPrefab);
+        else
+            TrySpawnAt(tableSpots, tableCustomers, tableCustomerPrefab);
     }
 
-    private Transform GetFreeSpot()
+    private void TrySpawnAt(List<Transform> spots, List<Customer> list, GameObject prefab)
+    {
+        if (list.Count >= spots.Count) return;
+
+        Transform freeSpot = GetFreeSpot(spots, list);
+        if (freeSpot == null) return;
+
+        GameObject obj = Instantiate(prefab, freeSpot.position, freeSpot.rotation);
+        Customer customer = obj.GetComponent<Customer>();
+
+        customer.SetOrder(orderManager.GenerateOrder());
+        customer.SetSnackOrder((SnackType)Random.Range(0, System.Enum.GetValues(typeof(SnackType)).Length));
+        customer.SetManager(this);
+        customer.SetExitPoint(exitTransform);
+
+        list.Add(customer);
+    }
+
+    private Transform GetFreeSpot(List<Transform> spots, List<Customer> list)
     {
         List<Transform> freeSpots = new List<Transform>();
 
-        foreach (Transform spot in queueSpots)
+        foreach (Transform spot in spots)
         {
             bool occupied = false;
-
-            foreach (Customer c in customers)
+            foreach (Customer c in list)
             {
                 if (Vector3.Distance(c.transform.position, spot.position) < 0.1f)
                 {
@@ -71,19 +103,43 @@ public class CustomerManager : MonoBehaviour
                     break;
                 }
             }
-
             if (!occupied)
                 freeSpots.Add(spot);
         }
 
-        if (freeSpots.Count == 0)
-            return null;
-
-        return freeSpots[Random.Range(0, freeSpots.Count)];
+        return freeSpots.Count == 0 ? null : freeSpots[Random.Range(0, freeSpots.Count)];
     }
+
+    //private Transform GetFreeSpot()
+    //{
+    //    List<Transform> freeSpots = new List<Transform>();
+
+    //    foreach (Transform spot in queueSpots)
+    //    {
+    //        bool occupied = false;
+
+    //        foreach (Customer c in customers)
+    //        {
+    //            if (Vector3.Distance(c.transform.position, spot.position) < 0.1f)
+    //            {
+    //                occupied = true;
+    //                break;
+    //            }
+    //        }
+
+    //        if (!occupied)
+    //            freeSpots.Add(spot);
+    //    }
+
+    //    if (freeSpots.Count == 0)
+    //        return null;
+
+    //    return freeSpots[Random.Range(0, freeSpots.Count)];
+    //}
 
     public void CustomerLeft(Customer customer)
     {
-        customers.Remove(customer);
+        barCustomers.Remove(customer);
+        tableCustomers.Remove(customer);
     }
 }

@@ -12,6 +12,9 @@ public class Customer : MonoBehaviour
         Leaving
     }
 
+    [Header("Location")]
+    [SerializeField] private CustomerLocationType locationType;
+
     [Header("Patience")]
     [SerializeField] private float patience = 30f;
     [SerializeField] private float partialDeliveryPatienceBonus = 15f;
@@ -153,8 +156,16 @@ public class Customer : MonoBehaviour
             drinkServed = true;
             servedGlass = glass;
 
-            glass.transform.position = barPoint.position;
-            glass.LockGlass();
+            //glass.transform.position = barPoint.position;
+            //glass.LockGlass();
+
+            if (locationType == CustomerLocationType.Bar && barPoint != null)
+            {
+                // En barra el vaso se coloca y se bloquea en el barPoint
+                glass.transform.position = barPoint.position;
+                glass.LockGlass();
+            }
+            // En mesa el jugador deja el vaso donde quiera, no se bloquea
 
             // Si solo quería bebida, pasa a beber directamente
             if (!wantsSnack || snackServed)
@@ -333,11 +344,23 @@ public class Customer : MonoBehaviour
 
     private void SpawnMoney()
     {
+        //if (moneyPrefab != null)
+        //{
+        //    spawnedMoney = Instantiate(
+        //        moneyPrefab,
+        //        barPoint.position + Vector3.up * 0.1f,
+        //        Quaternion.identity
+        //    );
+        //}
+
         if (moneyPrefab != null)
         {
             spawnedMoney = Instantiate(
                 moneyPrefab,
-                barPoint.position + Vector3.up * 0.1f,
+                // En barra usa barPoint, en mesa spawna delante del cliente
+                locationType == CustomerLocationType.Bar && barPoint != null
+                    ? barPoint.position + Vector3.up * 0.1f
+                    : transform.position + Vector3.up * 0.1f,
                 Quaternion.identity
             );
         }
