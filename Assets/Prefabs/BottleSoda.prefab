@@ -409,7 +409,7 @@ MonoBehaviour:
   m_LimitAngularVelocity: 0
   m_MaxLinearVelocityDelta: 10
   m_MaxAngularVelocityDelta: 20
-  ingredientName: Soda
+  ingredientName: Gaseosa
   fallYThreshold: 0.2
   timeOnFloor: 3
 --- !u!114 &1836034772107434584

@@ -121,7 +121,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8619946757120186420}
   m_Layer: 0
-  m_Name: BarPoint
+  m_Name: MoneyPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -136,7 +136,7 @@ Transform:
   m_GameObject: {fileID: 2410708957480325146}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.23, y: 0.41, z: 0}
+  m_LocalPosition: {x: -0.53, y: 0.94, z: -1.49}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -477,6 +477,7 @@ MonoBehaviour:
   barPoint: {fileID: 0}
   stealChance: 0.2
   moneyPrefab: {fileID: 4689986247026951019, guid: 72b3ddc556ee8864b993482c0ff718ba, type: 3}
+  moneySpawnPoint: {fileID: 8619946757120186420}
   drinkOnlyChance: 0.35
   snackOnlyChance: 0.2
   orderText: {fileID: 8357424295017590469}
@@ -879,8 +880,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2.0608463, y: 1, z: 1}
-  m_Center: {x: -0.53042084, y: 0, z: 0}
+  m_Size: {x: 1.6151086, y: 1, z: 1.7582352}
+  m_Center: {x: 0.094983645, y: 0, z: 0.078003325}
 --- !u!114 &9108072488955832128
 MonoBehaviour:
   m_ObjectHideFlags: 0

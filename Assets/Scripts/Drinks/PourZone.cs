@@ -13,17 +13,28 @@ public class PourZone : MonoBehaviour
 
         IngredientBottle bottle = other.GetComponent<IngredientBottle>();
 
-        if (bottle == null) return;
-
-        float angle = Vector3.Angle(bottle.transform.up, Vector3.down);
-
-        if (angle < 45f)
+        if (bottle != null)
         {
-            if (Time.time - lastPourTime > pourCooldown)
+            float angle = Vector3.Angle(bottle.transform.up, Vector3.down);
+            if (angle < 45f)
             {
-                glass.AddIngredient(bottle.IngredientName);
-                lastPourTime = Time.time;
+                if (Time.time - lastPourTime > pourCooldown)
+                {
+                    glass.AddIngredient(bottle.IngredientName);
+                    lastPourTime = Time.time;
+                }
             }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!RoundManager.Instance.IsRoundActive()) return;
+
+        SolidIngredient solid = other.GetComponent<SolidIngredient>();
+        if (solid != null)
+        {
+            solid.PlaceInGlass(glass);
         }
     }
 }

@@ -9,14 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48682be8b7ed2c743954d15b8cb5d184, type: 3}
-  m_Name: Recipe_Mojito
+  m_Script: {fileID: 11500000, guid: b58a3bc647e70774b8c7225eb3b51e7e, type: 3}
+  m_Name: UnityPlayerAccountSettings
   m_EditorClassIdentifier: 
-  cocktailName: Mojito
-  liquidIngredients:
-  - Ron
-  - Gaseosa
-  solidIngredients:
-  - EspiralLimon
-  image: {fileID: 0}
-  drinkColor: {r: 0.810996, g: 0.9245283, b: 0.72828406, a: 1}
+  clientId: 
+  scopeMask: 7
+  useCustomDeepLinkUri: 0
+  customScheme: 
+  customHost: 

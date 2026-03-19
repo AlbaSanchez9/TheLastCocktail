@@ -6,8 +6,13 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class Glass : MonoBehaviour
 {
-    private List<string> ingredients = new List<string>();
+    private List<string> liquidIngredients = new List<string>();
+    private List<string> solidIngredients = new List<string>();
+
     [SerializeField] private bool isDirty;
+
+    [Header("Líquido visual")]
+    [SerializeField] private GlassLiquid glassLiquid;
 
     [Header("Caída")]
     [SerializeField] private float fallYThreshold = -1f;
@@ -17,12 +22,13 @@ public class Glass : MonoBehaviour
     private XRGrabInteractable grab;
     private Rigidbody rb;
     private GlassSpawner spawner;
+    private RecipeManager recipeManager;
 
     private void Awake()
     {
         grab = GetComponent<XRGrabInteractable>();
         rb = GetComponent<Rigidbody>();
-
+        recipeManager = FindFirstObjectByType<RecipeManager>();
         if (grab != null)
             grab.selectEntered.AddListener(OnGrabbed);
     }
@@ -41,8 +47,6 @@ public class Glass : MonoBehaviour
         {
             falling = true;
             Debug.Log("Vaso caído al suelo");
-            //spawner?.NotifyGlassFell(this);
-            //Destroy(gameObject);
             StartCoroutine(WaitThenNotifyFall());
         }
     }
@@ -62,25 +66,66 @@ public class Glass : MonoBehaviour
     public void SetSpawner(GlassSpawner s) => spawner = s;
     public GlassSpawner GetSpawner() => spawner;
 
+    // Líquidos desde PourZone
     public void AddIngredient(string ingredient)
     {
         if (isDirty) return;
-        ingredients.Add(ingredient);
-        Debug.Log("Ingredientes actuales: " + string.Join(", ", ingredients));
+        liquidIngredients.Add(ingredient);
+        glassLiquid?.SetVisible(true);
+        ValidateRealTime();
+        Debug.Log("Líquido añadido: " + ingredient);
     }
 
-    public IReadOnlyList<string> GetIngredients() => ingredients;
+    // Sólidos desde PourZone
+    public void AddSolidIngredient(string ingredient)
+    {
+        if (isDirty) return;
+        solidIngredients.Add(ingredient);
+        ValidateRealTime();
+        Debug.Log("Sólido añadido: " + ingredient);
+    }
+
+    private void ValidateRealTime()
+    {
+        if (recipeManager == null) return;
+        Color color = recipeManager.CheckGlassColor(this);
+        if (color != Color.clear)
+            glassLiquid?.SetColor(color);
+        else
+            glassLiquid?.SetColor(new Color(1f, 1f, 1f, 0.3f));
+    }
+
+    public void SetDrinkColor(Color color)
+    {
+        glassLiquid?.SetVisible(true);
+        glassLiquid?.SetColor(color);
+    }
+
+    public IReadOnlyList<string> GetIngredients()
+    {
+        var all = new List<string>();
+        all.AddRange(liquidIngredients);
+        all.AddRange(solidIngredients);
+        return all;
+    }
+
+    public IReadOnlyList<string> GetLiquidIngredients() => liquidIngredients;
+    public IReadOnlyList<string> GetSolidIngredients() => solidIngredients;
 
     public void MakeDirty()
     {
         isDirty = true;
-        ingredients.Clear();
+        liquidIngredients.Clear();
+        solidIngredients.Clear();
+        glassLiquid?.SetVisible(false);
     }
 
     public void Clean()
     {
         isDirty = false;
-        ingredients.Clear();
+        liquidIngredients.Clear();
+        solidIngredients.Clear();
+        glassLiquid?.SetVisible(false);
     }
 
     public bool IsDirty() => isDirty;

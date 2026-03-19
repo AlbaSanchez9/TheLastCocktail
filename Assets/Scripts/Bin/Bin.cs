@@ -15,7 +15,8 @@ public class Bin : MonoBehaviour
 
         if (other.GetComponent<IngredientBottle>() != null ||
             other.GetComponent<InfiniteSnackTicket>() != null ||
-            other.GetComponent<SnackPrefab>() != null)
+            other.GetComponent<SnackPrefab>() != null ||
+            other.GetComponent<SolidIngredient>() != null)
         {
             Destroy(other.gameObject);
         }

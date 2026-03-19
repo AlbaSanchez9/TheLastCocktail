@@ -44,7 +44,11 @@ public class RecipeTablet : MonoBehaviour
             cocktailNameText.text = recipe.CocktailName;
 
         if (ingredientsText != null)
-            ingredientsText.text = string.Join("\n", recipe.Ingredients);
+        {
+            string liquids = "Líquidos:\n" + string.Join("\n", recipe.LiquidIngredients);
+            string solids = "\nSólidos:\n" + string.Join("\n", recipe.SolidIngredients);
+            ingredientsText.text = liquids + solids;
+        }
 
         if (cocktailImage != null && recipe.Image != null)
             cocktailImage.sprite = recipe.Image;

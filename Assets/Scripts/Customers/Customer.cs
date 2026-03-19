@@ -27,6 +27,7 @@ public class Customer : MonoBehaviour
     [Header("Economy")]
     [SerializeField] private float stealChance = 0.2f;
     [SerializeField] private GameObject moneyPrefab;
+    [SerializeField] private Transform moneySpawnPoint;
     private GameManager gameManager;
 
     [Header("Order Config")]
@@ -342,28 +343,44 @@ public class Customer : MonoBehaviour
         state = CustomerState.FinishedDrink;
     }
 
+    //private void SpawnMoney()
+    //{
+    //    //if (moneyPrefab != null)
+    //    //{
+    //    //    spawnedMoney = Instantiate(
+    //    //        moneyPrefab,
+    //    //        barPoint.position + Vector3.up * 0.1f,
+    //    //        Quaternion.identity
+    //    //    );
+    //    //}
+
+    //    if (moneyPrefab != null)
+    //    {
+    //        spawnedMoney = Instantiate(
+    //            moneyPrefab,
+    //            // En barra usa barPoint, en mesa spawna delante del cliente
+    //            locationType == CustomerLocationType.Bar && barPoint != null
+    //                ? barPoint.position + Vector3.up * 0.1f
+    //                : transform.position + Vector3.up * 0.1f,
+    //            Quaternion.identity
+    //        );
+    //    }
+    //}
+
     private void SpawnMoney()
     {
-        //if (moneyPrefab != null)
-        //{
-        //    spawnedMoney = Instantiate(
-        //        moneyPrefab,
-        //        barPoint.position + Vector3.up * 0.1f,
-        //        Quaternion.identity
-        //    );
-        //}
+        if (moneyPrefab == null) return;
 
-        if (moneyPrefab != null)
-        {
-            spawnedMoney = Instantiate(
-                moneyPrefab,
-                // En barra usa barPoint, en mesa spawna delante del cliente
-                locationType == CustomerLocationType.Bar && barPoint != null
-                    ? barPoint.position + Vector3.up * 0.1f
-                    : transform.position + Vector3.up * 0.1f,
-                Quaternion.identity
-            );
-        }
+        Vector3 spawnPos;
+
+        if (locationType == CustomerLocationType.Bar && barPoint != null)
+            spawnPos = barPoint.position + Vector3.up * 0.1f;
+        else if (moneySpawnPoint != null)
+            spawnPos = moneySpawnPoint.position;
+        else
+            spawnPos = transform.position + Vector3.up * 0.1f; // fallback
+
+        spawnedMoney = Instantiate(moneyPrefab, spawnPos, Quaternion.identity);
     }
 
     private void CheckMoneyCollected()
