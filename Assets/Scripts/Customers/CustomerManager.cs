@@ -191,4 +191,12 @@ public class CustomerManager : MonoBehaviour
         barCustomers.Remove(customer);
         tableCustomers.Remove(customer);
     }
+
+    public List<Customer> GetActiveCustomers()
+    {
+        var all = new List<Customer>();
+        all.AddRange(barCustomers);
+        all.AddRange(tableCustomers);
+        return all;
+    }
 }

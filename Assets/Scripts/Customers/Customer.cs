@@ -334,6 +334,15 @@ public class Customer : MonoBehaviour
     {
         state = CustomerState.Leaving;
         manager?.CustomerLeft(this);
+
+        if (!wasServed)
+            RoundManager.Instance.AddLostCustomer();
+
         Destroy(gameObject);
     }
+
+    public string GetCocktailName() => (wantsDrink && order != null) ? order.Recipe.CocktailName : "-";
+    public string GetSnackName() => wantsSnack ? snackOrder.ToString() : "-";
+    public bool WantsDrink() => wantsDrink;
+    public bool WantsSnack() => wantsSnack;
 }
