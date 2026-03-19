@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -27,11 +28,10 @@ public class Customer : MonoBehaviour
     [Header("Economy")]
     [SerializeField] private float stealChance = 0.2f;
     [SerializeField] private GameObject moneyPrefab;
-    [SerializeField] private Transform moneySpawnPoint;
-    private GameManager gameManager;
+    [SerializeField] private float moneyDistanceFromClient = 0.3f;
 
     [Header("Order Config")]
-    [SerializeField] private float drinkOnlyChance = 0.35f;   
+    [SerializeField] private float drinkOnlyChance = 0.35f;
     [SerializeField] private float snackOnlyChance = 0.20f;
 
     [Header("Snack")]
@@ -40,41 +40,35 @@ public class Customer : MonoBehaviour
 
     private bool wantsDrink = false;
     private bool wantsSnack = false;
-
     private bool drinkServed = false;
     private bool snackServed = false;
-
     private bool patienceBonusApplied = false;
 
     [SerializeField] private TextMeshProUGUI orderText;
 
-    private Vector3 targetPosition;
     [SerializeField] private float moveSpeed = 2f;
     private Transform exitPoint;
 
     private CustomerState state;
-
     private float currentPatience;
     private float drinkTimer;
 
     private Order order;
-
     private Glass servedGlass;
     private GameObject spawnedMoney;
-
     private CustomerManager manager;
 
-    //private bool hasDrink = false;
+    private Transform tableCenter;
+    private bool hasTableCenter = false;
 
     private void Awake()
     {
-        if (gameManager == null)
-            gameManager = FindFirstObjectByType<GameManager>();
+        if (GameManager.Instance == null)
+            Debug.LogWarning("GameManager no encontrado");
     }
 
     private void Start()
     {
-        // Decidir tipo de pedido al inicio
         float roll = Random.value;
         if (roll < drinkOnlyChance)
         {
@@ -99,34 +93,49 @@ public class Customer : MonoBehaviour
             patienceBar.maxValue = patience;
 
         UpdateOrderText();
+
+        StartCoroutine(RotateToTableCenter());
+    }
+
+    private IEnumerator RotateToTableCenter()
+    {
+        yield return null;
+        yield return null;
+        yield return null;
+
+        if (hasTableCenter && tableCenter != null)
+        {
+            Vector3 dirToCenter = tableCenter.position - transform.position;
+            dirToCenter.y = 0;
+            if (dirToCenter != Vector3.zero)
+            {
+                // La cara apunta a +X, hay que rotar -90 grados en Y
+                Quaternion rotation = Quaternion.LookRotation(dirToCenter);
+                transform.rotation = rotation * Quaternion.Euler(0, 90f, 0);
+                Debug.Log($"Cliente rotado hacia mesa: {transform.rotation.eulerAngles}");
+            }
+        }
     }
 
     public void SetOrder(Order newOrder)
     {
         order = newOrder;
         UpdateOrderText();
-        //if (orderText != null)
-        //    orderText.text = order.Recipe.CocktailName;
     }
 
-    public void SetManager(CustomerManager m)
-    {
-        manager = m;
-    }
+    public void SetManager(CustomerManager m) => manager = m;
+    public void SetExitPoint(Transform exit) => exitPoint = exit;
 
-    public void SetExitPoint(Transform exit)
+    public void SetTableCenter(Transform center)
     {
-        exitPoint = exit;
+        tableCenter = center;
+        hasTableCenter = true;
     }
 
     public void SetSnackOrder(SnackType snack)
     {
         snackOrder = snack;
         UpdateOrderText();
-        //if (orderText != null && order != null)
-        //{
-        //    orderText.text = $"Bebida: {order.Recipe.CocktailName}\nSnack: {snackOrder}";
-        //}
     }
 
     private void UpdateOrderText()
@@ -143,44 +152,27 @@ public class Customer : MonoBehaviour
 
     public void TryServeDrink(string cocktailName, Glass glass)
     {
-        if (!wantsDrink) return;
-        if (drinkServed) return;
-        if (state != CustomerState.Waiting)
-            return;
+        if (!wantsDrink || drinkServed) return;
+        if (state != CustomerState.Waiting) return;
 
         if (cocktailName == order.Recipe.CocktailName)
         {
             Debug.Log("Pedido de bebida correcto!");
-
             GameManager.Instance.AddCorrectDrink();
 
             drinkServed = true;
             servedGlass = glass;
 
-            //glass.transform.position = barPoint.position;
-            //glass.LockGlass();
-
             if (locationType == CustomerLocationType.Bar && barPoint != null)
             {
-                // En barra el vaso se coloca y se bloquea en el barPoint
                 glass.transform.position = barPoint.position;
                 glass.LockGlass();
             }
-            // En mesa el jugador deja el vaso donde quiera, no se bloquea
 
-            // Si solo quería bebida, pasa a beber directamente
             if (!wantsSnack || snackServed)
-            {
                 StartDrinking();
-            }
             else
-            {
-                // Tiene pendiente el snack: bonus de paciencia
                 ApplyPartialDeliveryBonus();
-            }
-
-            //drinkTimer = drinkTime;
-            //state = CustomerState.Drinking;
         }
         else
         {
@@ -196,39 +188,34 @@ public class Customer : MonoBehaviour
         if (deliveredSnack == snackOrder)
         {
             snackServed = true;
-
             GameManager.Instance.AddCorrectSnack();
 
-            if (!wantsDrink || drinkServed) StartDrinking();
-            else ApplyPartialDeliveryBonus();
+            if (!wantsDrink || drinkServed)
+                StartDrinking();
+            else
+                ApplyPartialDeliveryBonus();
+
             return true;
         }
         else
         {
             Debug.Log("Snack incorrecto");
-
             if (!snackFailedAlready)
             {
                 GameManager.Instance.AddWrongSnack();
                 snackFailedAlready = true;
             }
-
             return false;
         }
     }
 
-    // Aplica el bonus de paciencia una sola vez al recibir entrega parcial
     private void ApplyPartialDeliveryBonus()
     {
         if (patienceBonusApplied) return;
         patienceBonusApplied = true;
 
-        currentPatience += partialDeliveryPatienceBonus;
-
-        // No dejar que supere el máximo original para no romper la barra
-        currentPatience = Mathf.Min(currentPatience, patience);
-
-        Debug.Log($"Entrega parcial recibida. Paciencia aumentada en {partialDeliveryPatienceBonus}s");
+        currentPatience = Mathf.Min(currentPatience + partialDeliveryPatienceBonus, patience);
+        Debug.Log($"Entrega parcial. Paciencia +{partialDeliveryPatienceBonus}s");
 
         if (patienceBar != null)
             patienceBar.value = currentPatience;
@@ -249,11 +236,9 @@ public class Customer : MonoBehaviour
             case CustomerState.Waiting:
                 HandleWaiting();
                 break;
-
             case CustomerState.Drinking:
                 HandleDrinking();
                 break;
-
             case CustomerState.FinishedDrink:
                 CheckMoneyCollected();
                 break;
@@ -276,30 +261,15 @@ public class Customer : MonoBehaviour
         if (patienceBar != null)
         {
             patienceBar.value = currentPatience;
-
             if (currentPatience < patience * 0.3f)
                 patienceBar.fillRect.GetComponent<Image>().color = Color.red;
         }
 
-        if (currentPatience < patience * 0.3f)
-        {
-            Debug.Log("Cliente impaciente!");
-        }
-
         if (currentPatience <= 0f)
         {
-            // Si había recibido algo parcialmente, deja algo de dinero antes de irse
             bool receivedPartial = (wantsDrink && drinkServed) || (wantsSnack && snackServed);
-
             if (receivedPartial)
-            {
-                Debug.Log("Cliente se fue sin esperar más, pero había recibido algo. Deja algo de dinero.");
                 SpawnMoney();
-            }
-            else
-            {
-                Debug.Log("Cliente se fue enfadado por esperar demasiado");
-            }
 
             LeaveBar(false);
         }
@@ -308,11 +278,8 @@ public class Customer : MonoBehaviour
     private void HandleDrinking()
     {
         drinkTimer -= Time.deltaTime;
-
         if (drinkTimer <= 0)
-        {
             FinishDrink();
-        }
     }
 
     private void FinishDrink()
@@ -326,46 +293,12 @@ public class Customer : MonoBehaviour
         }
 
         if (Random.value < stealChance)
-        {
             Debug.Log("Cliente intenta irse sin pagar!");
-            targetPosition = exitPoint.position;
-        }
         else
-        {
-            //spawnedMoney = Instantiate(
-            //    moneyPrefab,
-            //    barPoint.position + Vector3.up * 0.1f,
-            //    Quaternion.identity
-            //);
             SpawnMoney();
-        }
 
         state = CustomerState.FinishedDrink;
     }
-
-    //private void SpawnMoney()
-    //{
-    //    //if (moneyPrefab != null)
-    //    //{
-    //    //    spawnedMoney = Instantiate(
-    //    //        moneyPrefab,
-    //    //        barPoint.position + Vector3.up * 0.1f,
-    //    //        Quaternion.identity
-    //    //    );
-    //    //}
-
-    //    if (moneyPrefab != null)
-    //    {
-    //        spawnedMoney = Instantiate(
-    //            moneyPrefab,
-    //            // En barra usa barPoint, en mesa spawna delante del cliente
-    //            locationType == CustomerLocationType.Bar && barPoint != null
-    //                ? barPoint.position + Vector3.up * 0.1f
-    //                : transform.position + Vector3.up * 0.1f,
-    //            Quaternion.identity
-    //        );
-    //    }
-    //}
 
     private void SpawnMoney()
     {
@@ -374,11 +307,19 @@ public class Customer : MonoBehaviour
         Vector3 spawnPos;
 
         if (locationType == CustomerLocationType.Bar && barPoint != null)
+        {
             spawnPos = barPoint.position + Vector3.up * 0.1f;
-        else if (moneySpawnPoint != null)
-            spawnPos = moneySpawnPoint.position;
+        }
+        else if (tableCenter != null)
+        {
+            Vector3 dirToCenter = (tableCenter.position - transform.position).normalized;
+            dirToCenter.y = 0;
+            spawnPos = transform.position + dirToCenter * moneyDistanceFromClient + Vector3.up * 0.1f;
+        }
         else
-            spawnPos = transform.position + Vector3.up * 0.1f; // fallback
+        {
+            spawnPos = transform.position + Vector3.up * 0.1f;
+        }
 
         spawnedMoney = Instantiate(moneyPrefab, spawnPos, Quaternion.identity);
     }
@@ -386,35 +327,13 @@ public class Customer : MonoBehaviour
     private void CheckMoneyCollected()
     {
         if (spawnedMoney == null)
-        {
             LeaveBar(true);
-        }
     }
-
-    //public void ReceiveDrink()
-    //{
-    //    hasDrink = true;
-
-    //    Debug.Log("Cliente recibió su bebida");
-    //}
 
     private void LeaveBar(bool wasServed)
     {
         state = CustomerState.Leaving;
-
-        if (manager != null)
-            manager.CustomerLeft(this);
-
-        if (wasServed)
-        {
-            Debug.Log("Cliente se va satisfecho");
-        }
-
+        manager?.CustomerLeft(this);
         Destroy(gameObject);
     }
 }
-
-
-
-
-
