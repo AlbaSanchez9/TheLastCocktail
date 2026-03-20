@@ -1,17 +1,14 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class KitchenBelt : MonoBehaviour
 {
     [SerializeField] private Transform outputPoint;
-
-    [Header("Snack Prefabs")]
     [SerializeField] private GameObject olivesPrefab;
     [SerializeField] private GameObject chipsPrefab;
     [SerializeField] private GameObject nachosPrefab;
     [SerializeField] private GameObject peanutsPrefab;
-
-    [Header("Snack Output Points")]
     [SerializeField] private Transform olivesOutputPoint;
     [SerializeField] private Transform chipsOutputPoint;
     [SerializeField] private Transform nachosOutputPoint;
@@ -19,6 +16,7 @@ public class KitchenBelt : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!NetworkManager.Singleton.IsServer) return;
         if (!RoundManager.Instance.IsRoundActive()) return;
 
         InfiniteSnackTicket ticket = other.GetComponent<InfiniteSnackTicket>();
@@ -52,8 +50,12 @@ public class KitchenBelt : MonoBehaviour
         };
 
         if (prefabToSpawn != null)
-            Instantiate(prefabToSpawn, spawnPoint.position, Quaternion.identity);
+        {
+            GameObject snackObj = Instantiate(prefabToSpawn, spawnPoint.position, Quaternion.identity);
+            snackObj.GetComponent<NetworkObject>().Spawn();
+        }
 
-        Destroy(ticketObject);
+        if (ticketObject != null)
+            ticketObject.GetComponent<NetworkObject>().Despawn();
     }
 }

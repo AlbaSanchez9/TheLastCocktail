@@ -1,14 +1,14 @@
-using System.Collections;
+﻿using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-public class InfiniteSnackTicket : XRGrabInteractable
+public class InfiniteSnackTicket : MonoBehaviour
 {
     [SerializeField] public SnackType snackType;
-    [SerializeField] private float respawnDelay = 0.2f;
 
-    [Header("Ca�da")]
+    [Header("Caída")]
     [SerializeField] private float fallYThreshold = -1f;
     [SerializeField] private float timeOnFloor = 3f;
 
@@ -18,11 +18,20 @@ public class InfiniteSnackTicket : XRGrabInteractable
     private Quaternion originalRotation;
     private bool falling = false;
 
-    protected override void Awake()
+    private XRGrabInteractable grab;
+
+    private void Awake()
     {
-        base.Awake();
         originalPosition = transform.position;
         originalRotation = transform.rotation;
+
+        grab = GetComponent<XRGrabInteractable>();
+        if (grab != null)
+        {
+            grab.retainTransformParent = false;
+            grab.movementType = XRBaseInteractable.MovementType.VelocityTracking;
+            grab.throwOnDetach = false;
+        }
     }
 
     private void Update()
@@ -38,30 +47,8 @@ public class InfiniteSnackTicket : XRGrabInteractable
     private IEnumerator WaitThenDestroy()
     {
         yield return new WaitForSeconds(timeOnFloor);
-        Destroy(gameObject);
-    }
-
-    protected override void OnSelectEntered(SelectEnterEventArgs args)
-    {
-        base.OnSelectEntered(args);
-        StartCoroutine(SpawnCopy());
-    }
-
-    private IEnumerator SpawnCopy()
-    {
-        yield return new WaitForSeconds(respawnDelay);
-        GameObject copy = Instantiate(gameObject, originalPosition, originalRotation);
-
-        Rigidbody rb = copy.GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.isKinematic = false;
-            rb.useGravity = true;
-        }
-
-        var copyInteractable = copy.GetComponent<InfiniteSnackTicket>();
-        if (copyInteractable != null)
-            copyInteractable.SetOriginalTransform(originalPosition, originalRotation);
+        if (NetworkManager.Singleton.IsServer)
+            GetComponent<NetworkObject>().Despawn();
     }
 
     public void SetOriginalTransform(Vector3 pos, Quaternion rot)

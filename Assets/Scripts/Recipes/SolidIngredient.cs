@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -27,7 +28,8 @@ public class SolidIngredient : XRGrabInteractable
     private IEnumerator WaitThenDestroy()
     {
         yield return new WaitForSeconds(timeOnFloor);
-        Destroy(gameObject);
+        if (NetworkManager.Singleton.IsServer)
+            GetComponent<NetworkObject>().Despawn();
     }
 
     public void PlaceInGlass(Glass glass)

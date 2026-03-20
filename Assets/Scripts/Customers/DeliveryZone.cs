@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class DeliveryZone : MonoBehaviour
@@ -28,7 +29,7 @@ public class DeliveryZone : MonoBehaviour
         {
             bool correct = customer.TryServeSnack(snack.snackType);
             if (correct)
-                Destroy(other.gameObject);
+                snack.GetComponent<NetworkObject>().Despawn();
         }
     }
 }

@@ -1,17 +1,12 @@
-using System.Collections;
+ï»¿using System.Collections;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Customer : MonoBehaviour
+public class Customer : NetworkBehaviour
 {
-    private enum CustomerState
-    {
-        Waiting,
-        Drinking,
-        FinishedDrink,
-        Leaving
-    }
+    private enum CustomerState { Waiting, Drinking, FinishedDrink, Leaving }
 
     [Header("Location")]
     [SerializeField] private CustomerLocationType locationType;
@@ -36,7 +31,6 @@ public class Customer : MonoBehaviour
 
     private SnackType snackOrder;
     private bool snackFailedAlready = false;
-
     private bool wantsDrink = false;
     private bool wantsSnack = false;
     private bool drinkServed = false;
@@ -47,115 +41,116 @@ public class Customer : MonoBehaviour
     [SerializeField] private float moveSpeed = 2f;
     private Transform exitPoint;
 
-    private CustomerState state;
-    private float currentPatience;
-    private float drinkTimer;
+    private NetworkVariable<float> currentPatience = new NetworkVariable<float>(
+        0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<CustomerState> state = new NetworkVariable<CustomerState>(
+        CustomerState.Waiting, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+    private float drinkTimer;
     private Order order;
     private Glass servedGlass;
+    private ulong servedGlassNetId = 0;
     private GameObject spawnedMoney;
     private CustomerManager manager;
-
     private Transform tableCenter;
     private bool hasTableCenter = false;
 
-    private void Awake()
+    public override void OnNetworkSpawn()
     {
-        if (GameManager.Instance == null)
-            Debug.LogWarning("GameManager no encontrado");
+        if (patienceBar != null)
+        {
+            patienceBar.maxValue = patience;
+            patienceBar.value = currentPatience.Value;
+            patienceBar.fillRect.GetComponent<Image>().color = Color.white;
+        }
+
+        currentPatience.OnValueChanged += (old, val) =>
+        {
+            if (patienceBar != null)
+            {
+                patienceBar.value = val;
+                if (val < patience * 0.3f)
+                    patienceBar.fillRect.GetComponent<Image>().color = Color.red;
+                else
+                    patienceBar.fillRect.GetComponent<Image>().color = Color.white;
+            }
+        };
     }
 
     private void Start()
     {
+        if (!IsServer) return;
+
         float roll = Random.value;
-        if (roll < drinkOnlyChance)
-        {
-            wantsDrink = true;
-            wantsSnack = false;
-        }
-        else if (roll < drinkOnlyChance + snackOnlyChance)
-        {
-            wantsDrink = false;
-            wantsSnack = true;
-        }
-        else
-        {
-            wantsDrink = true;
-            wantsSnack = true;
-        }
+        if (roll < drinkOnlyChance) { wantsDrink = true; wantsSnack = false; }
+        else if (roll < drinkOnlyChance + snackOnlyChance) { wantsDrink = false; wantsSnack = true; }
+        else { wantsDrink = true; wantsSnack = true; }
 
-        state = CustomerState.Waiting;
-        currentPatience = patience;
+        currentPatience.Value = patience;
+        state.Value = CustomerState.Waiting;
 
-        if (patienceBar != null)
-            patienceBar.maxValue = patience;
+        if (patienceBar != null) patienceBar.maxValue = patience;
 
-        UpdateOrderText();
+        UpdateOrderTextClientRpc(
+            wantsDrink && order != null ? order.Recipe.CocktailName : "",
+            wantsSnack ? snackOrder.ToString() : "",
+            wantsDrink, wantsSnack
+        );
+
         StartCoroutine(RotateToTableCenter());
     }
 
     private IEnumerator RotateToTableCenter()
     {
-        yield return null;
-        yield return null;
-        yield return null;
-
+        yield return null; yield return null; yield return null;
         if (hasTableCenter && tableCenter != null)
         {
-            Vector3 dirToCenter = tableCenter.position - transform.position;
-            dirToCenter.y = 0;
-            if (dirToCenter != Vector3.zero)
-            {
-                Quaternion rotation = Quaternion.LookRotation(dirToCenter);
-                transform.rotation = rotation * Quaternion.Euler(0, 90f, 0);
-            }
+            Vector3 dir = tableCenter.position - transform.position;
+            dir.y = 0;
+            if (dir != Vector3.zero)
+                transform.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(0, 90f, 0);
         }
     }
 
-    public void SetOrder(Order newOrder)
-    {
-        order = newOrder;
-        UpdateOrderText();
-    }
-
-    public void SetManager(CustomerManager m) => manager = m;
-    public void SetExitPoint(Transform exit) => exitPoint = exit;
-    public void SetTableCenter(Transform center)
-    {
-        tableCenter = center;
-        hasTableCenter = true;
-    }
-
-    public void SetSnackOrder(SnackType snack)
-    {
-        snackOrder = snack;
-        UpdateOrderText();
-    }
-
-    private void UpdateOrderText()
+    [ClientRpc]
+    private void UpdateOrderTextClientRpc(string cocktail, string snack, bool hasDrink, bool hasSnack)
     {
         if (orderText == null) return;
-
-        if (wantsDrink && wantsSnack && order != null)
-            orderText.text = $"Bebida: {order.Recipe.CocktailName}\nSnack: {snackOrder}";
-        else if (wantsDrink && order != null)
-            orderText.text = $"Bebida: {order.Recipe.CocktailName}";
-        else if (wantsSnack)
-            orderText.text = $"Snack: {snackOrder}";
+        if (hasDrink && hasSnack) orderText.text = $"Bebida: {cocktail}\nSnack: {snack}";
+        else if (hasDrink) orderText.text = $"Bebida: {cocktail}";
+        else if (hasSnack) orderText.text = $"Snack: {snack}";
     }
+
+    public void SetOrder(Order newOrder) => order = newOrder;
+    public void SetManager(CustomerManager m) => manager = m;
+    public void SetExitPoint(Transform exit) => exitPoint = exit;
+    public void SetSnackOrder(SnackType snack) => snackOrder = snack;
+    public void SetTableCenter(Transform center) { tableCenter = center; hasTableCenter = true; }
 
     public void TryServeDrink(string cocktailName, Glass glass)
     {
+        if (!IsServer) { TryServeDrinkRpc(cocktailName, glass.NetworkObjectId); return; }
+        TryServeDrinkInternal(cocktailName, glass);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void TryServeDrinkRpc(string cocktailName, ulong glassNetId)
+    {
+        if (NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(glassNetId, out var netObj))
+            TryServeDrinkInternal(cocktailName, netObj.GetComponent<Glass>());
+    }
+
+    private void TryServeDrinkInternal(string cocktailName, Glass glass)
+    {
         if (!wantsDrink || drinkServed) return;
-        if (state != CustomerState.Waiting) return;
+        if (state.Value != CustomerState.Waiting) return;
 
-        if (cocktailName == order.Recipe.CocktailName)
+        if (order != null && cocktailName == order.Recipe.CocktailName)
         {
-            Debug.Log("Pedido de bebida correcto!");
             GameManager.Instance.AddCorrectDrink();
-
             drinkServed = true;
             servedGlass = glass;
+            servedGlassNetId = glass.NetworkObjectId; // â† guarda el id
 
             if (locationType == CustomerLocationType.Bar && barPoint != null)
             {
@@ -163,42 +158,38 @@ public class Customer : MonoBehaviour
                 glass.LockGlass();
             }
 
-            if (!wantsSnack || snackServed)
-                StartDrinking();
-            else
-                ApplyPartialDeliveryBonus();
+            if (!wantsSnack || snackServed) StartDrinking();
+            else ApplyPartialDeliveryBonus();
         }
         else
         {
-            Debug.Log("Bebida incorrecta!");
             GameManager.Instance.AddWrongDrink();
         }
     }
 
     public bool TryServeSnack(SnackType deliveredSnack)
     {
-        if (!wantsSnack || snackServed) return false;
+        if (!IsServer) { TryServeSnackRpc(deliveredSnack); return false; }
+        return TryServeSnackInternal(deliveredSnack);
+    }
 
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void TryServeSnackRpc(SnackType deliveredSnack) => TryServeSnackInternal(deliveredSnack);
+
+    private bool TryServeSnackInternal(SnackType deliveredSnack)
+    {
+        if (!wantsSnack || snackServed) return false;
         if (deliveredSnack == snackOrder)
         {
             snackServed = true;
             GameManager.Instance.AddCorrectSnack();
-
-            if (!wantsDrink || drinkServed)
-                StartDrinking();
-            else
-                ApplyPartialDeliveryBonus();
-
+            if (!wantsDrink || drinkServed) StartDrinking();
+            else ApplyPartialDeliveryBonus();
             return true;
         }
         else
         {
-            Debug.Log("Snack incorrecto");
-            if (!snackFailedAlready)
-            {
-                GameManager.Instance.AddWrongSnack();
-                snackFailedAlready = true;
-            }
+            if (!snackFailedAlready) { GameManager.Instance.AddWrongSnack(); snackFailedAlready = true; }
             return false;
         }
     }
@@ -207,67 +198,39 @@ public class Customer : MonoBehaviour
     {
         if (patienceBonusApplied) return;
         patienceBonusApplied = true;
-
-        currentPatience = Mathf.Min(currentPatience + partialDeliveryPatienceBonus, patience);
-        Debug.Log($"Entrega parcial. Paciencia +{partialDeliveryPatienceBonus}s");
-
-        if (patienceBar != null)
-            patienceBar.value = currentPatience;
+        currentPatience.Value = Mathf.Min(currentPatience.Value + partialDeliveryPatienceBonus, patience);
     }
 
-    private void StartDrinking()
-    {
-        drinkTimer = drinkTime;
-        state = CustomerState.Drinking;
-    }
+    private void StartDrinking() { drinkTimer = drinkTime; state.Value = CustomerState.Drinking; }
 
     private void Update()
     {
+        if (!IsServer) return;
         if (!RoundManager.Instance.IsRoundActive()) return;
 
-        switch (state)
+        switch (state.Value)
         {
-            case CustomerState.Waiting:
-                HandleWaiting();
-                break;
-            case CustomerState.Drinking:
-                HandleDrinking();
-                break;
-            case CustomerState.FinishedDrink:
-                CheckMoneyCollected();
-                break;
+            case CustomerState.Waiting: HandleWaiting(); break;
+            case CustomerState.Drinking: HandleDrinking(); break;
+            case CustomerState.FinishedDrink: CheckMoneyCollected(); break;
         }
 
-        if (state == CustomerState.FinishedDrink && spawnedMoney == null)
+        if (state.Value == CustomerState.FinishedDrink && spawnedMoney == null)
         {
             transform.position = Vector3.MoveTowards(
-                transform.position,
-                exitPoint.position,
-                moveSpeed * Time.deltaTime
-            );
+                transform.position, exitPoint.position, moveSpeed * Time.deltaTime);
         }
     }
 
     private void HandleWaiting()
     {
-        currentPatience -= Time.deltaTime;
+        currentPatience.Value -= Time.deltaTime;
 
-        if (patienceBar != null)
-        {
-            patienceBar.value = currentPatience;
-            if (currentPatience < patience * 0.3f)
-                patienceBar.fillRect.GetComponent<Image>().color = Color.red;
-        }
-
-        if (currentPatience <= 0f)
+        if (currentPatience.Value <= 0f)
         {
             bool receivedPartial = (wantsDrink && drinkServed) || (wantsSnack && snackServed);
-
-            if (receivedPartial)
-                SpawnMoney(); // cobra solo lo que recibió
-            else
-                GameManager.Instance.ApplyLostCustomerPenalty(wantsDrink, wantsSnack, false, false);
-
+            if (receivedPartial) SpawnMoney();
+            else GameManager.Instance.ApplyLostCustomerPenalty(wantsDrink, wantsSnack, false, false);
             LeaveBar(false);
         }
     }
@@ -275,15 +238,18 @@ public class Customer : MonoBehaviour
     private void HandleDrinking()
     {
         drinkTimer -= Time.deltaTime;
-        if (drinkTimer <= 0)
-            FinishDrink();
+        if (drinkTimer <= 0) FinishDrink();
     }
 
     private void FinishDrink()
     {
-        Debug.Log("Cliente terminó");
+        // Recupera el vaso por NetworkObjectId si servedGlass es null
+        if (servedGlass == null && servedGlassNetId != 0)
+        {
+            if (NetworkManager.SpawnManager.SpawnedObjects.TryGetValue(servedGlassNetId, out var netObj))
+                servedGlass = netObj.GetComponent<Glass>();
+        }
 
-        // Solo limpia el vaso si tenía bebida
         if (wantsDrink && servedGlass != null)
         {
             servedGlass.MakeDirty();
@@ -292,70 +258,60 @@ public class Customer : MonoBehaviour
 
         if (Random.value < stealChance)
         {
-            Debug.Log("Cliente intenta irse sin pagar!");
             GameManager.Instance.ApplyLostCustomerPenalty(wantsDrink, wantsSnack, drinkServed, snackServed);
-            state = CustomerState.FinishedDrink;
-            LeaveBar(true); // se va sin spawnar dinero
+            state.Value = CustomerState.FinishedDrink;
+            LeaveBar(true);
             return;
         }
 
         SpawnMoney();
-        state = CustomerState.FinishedDrink;
+        state.Value = CustomerState.FinishedDrink;
     }
 
     private void SpawnMoney()
     {
         if (moneyPrefab == null) return;
 
-        // Cobra solo lo que realmente recibió
         int amount = 0;
-        if (drinkServed && snackServed)
-            amount = GameManager.Instance.GetPricing().bothPrice;
-        else if (drinkServed)
-            amount = GameManager.Instance.GetPricing().drinkOnlyPrice;
-        else if (snackServed)
-            amount = GameManager.Instance.GetPricing().snackOnlyPrice;
-
-        if (amount == 0) return; // no recibió nada, no spawna dinero
+        if (drinkServed && snackServed) amount = GameManager.Instance.GetPricing().bothPrice;
+        else if (drinkServed) amount = GameManager.Instance.GetPricing().drinkOnlyPrice;
+        else if (snackServed) amount = GameManager.Instance.GetPricing().snackOnlyPrice;
+        if (amount == 0) return;
 
         Vector3 spawnPos;
         if (locationType == CustomerLocationType.Bar && barPoint != null)
             spawnPos = barPoint.position + Vector3.up * 0.1f;
         else if (tableCenter != null)
         {
-            Vector3 dirToCenter = (tableCenter.position - transform.position).normalized;
-            dirToCenter.y = 0;
-            spawnPos = transform.position + dirToCenter * moneyDistanceFromClient + Vector3.up * 0.1f;
+            Vector3 dir = (tableCenter.position - transform.position).normalized;
+            dir.y = 0;
+            spawnPos = transform.position + dir * moneyDistanceFromClient + Vector3.up * 0.1f;
         }
-        else
-            spawnPos = transform.position + Vector3.up * 0.1f;
+        else spawnPos = transform.position + Vector3.up * 0.1f;
 
         GameObject moneyObj = Instantiate(moneyPrefab, spawnPos, Quaternion.identity);
+        moneyObj.GetComponent<NetworkObject>().Spawn();
         spawnedMoney = moneyObj;
 
         Money money = moneyObj.GetComponent<Money>();
-        if (money != null)
-            money.SetValue(amount);
+        if (money != null) money.SetValue(amount);
     }
 
     private void CheckMoneyCollected()
     {
-        if (spawnedMoney == null)
-            LeaveBar(true);
+        if (spawnedMoney == null) LeaveBar(true);
     }
 
     private void LeaveBar(bool wasServed)
     {
-        state = CustomerState.Leaving;
+        state.Value = CustomerState.Leaving;
         manager?.CustomerLeft(this);
-
         if (!wasServed)
         {
             RoundManager.Instance.AddLostCustomer();
             GameManager.Instance.ApplyLostCustomerPenalty(wantsDrink, wantsSnack, drinkServed, snackServed);
         }
-
-        Destroy(gameObject);
+        GetComponent<NetworkObject>().Despawn();
     }
 
     public string GetCocktailName() => (wantsDrink && order != null) ? order.Recipe.CocktailName : "-";

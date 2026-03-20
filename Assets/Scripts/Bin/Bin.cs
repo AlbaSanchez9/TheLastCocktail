@@ -1,24 +1,28 @@
+using Unity.Netcode;
 using UnityEngine;
 
 public class Bin : MonoBehaviour
 {
     private void OnTriggerEnter(Collider other)
     {
-        // Notifica al spawner antes de destruir
+        if (!NetworkManager.Singleton.IsServer) return;
+
         Glass glass = other.GetComponent<Glass>();
         if (glass != null)
         {
             glass.GetSpawner()?.NotifyGlassFell(glass);
-            Destroy(other.gameObject);
+            glass.GetComponent<NetworkObject>().Despawn();
             return;
         }
 
-        if (other.GetComponent<IngredientBottle>() != null ||
+        NetworkObject netObj = other.GetComponent<NetworkObject>();
+        if (netObj != null && (
+            other.GetComponent<IngredientBottle>() != null ||
             other.GetComponent<InfiniteSnackTicket>() != null ||
             other.GetComponent<SnackPrefab>() != null ||
-            other.GetComponent<SolidIngredient>() != null)
+            other.GetComponent<SolidIngredient>() != null))
         {
-            Destroy(other.gameObject);
+            netObj.Despawn();
         }
     }
 }

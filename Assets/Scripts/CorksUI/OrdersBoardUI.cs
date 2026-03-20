@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class OrdersBoardUI : MonoBehaviour
@@ -22,26 +23,30 @@ public class OrdersBoardUI : MonoBehaviour
             Destroy(t);
         spawnedTickets.Clear();
 
-        List<Customer> customers = customerManager.GetActiveCustomers();
-
-        for (int i = 0; i < customers.Count; i++)
+        if (NetworkManager.Singleton.IsServer)
         {
-            GameObject ticketObj = Instantiate(orderTicketPrefab, ticketsParent);
-
-            RectTransform rt = ticketObj.GetComponent<RectTransform>();
-            rt.localPosition = new Vector3(0, startOffsetY - i * ticketHeight, 0);
-            rt.localRotation = Quaternion.identity;
-            rt.localScale = Vector3.one;
-
-            OrderTicketUI ticket = ticketObj.GetComponent<OrderTicketUI>();
-            ticket.Setup(
-                customers[i].GetCocktailName(),
-                customers[i].GetSnackName(),
-                customers[i].WantsDrink(),
-                customers[i].WantsSnack()
-            );
-
-            spawnedTickets.Add(ticketObj);
+            List<Customer> customers = customerManager.GetActiveCustomers();
+            for (int i = 0; i < customers.Count; i++)
+                SpawnTicket(i, customers[i].GetCocktailName(), customers[i].GetSnackName(),
+                    customers[i].WantsDrink(), customers[i].WantsSnack());
         }
+        else
+        {
+            var orders = customerManager.GetClientOrderData();
+            for (int i = 0; i < orders.Count; i++)
+                SpawnTicket(i, orders[i].cocktailName, orders[i].snackName,
+                    orders[i].wantsDrink, orders[i].wantsSnack);
+        }
+    }
+
+    private void SpawnTicket(int index, string cocktail, string snack, bool wantsDrink, bool wantsSnack)
+    {
+        GameObject ticketObj = Instantiate(orderTicketPrefab, ticketsParent);
+        RectTransform rt = ticketObj.GetComponent<RectTransform>();
+        rt.localPosition = new Vector3(0, startOffsetY - index * ticketHeight, 0);
+        rt.localRotation = Quaternion.identity;
+        rt.localScale = Vector3.one;
+        ticketObj.GetComponent<OrderTicketUI>().Setup(cocktail, snack, wantsDrink, wantsSnack);
+        spawnedTickets.Add(ticketObj);
     }
 }

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -28,10 +27,8 @@ public class LobbyUIManager2Players : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        // Limpia el estado al entrar al lobby (por si viene de una partida)
         readyPlayers.Clear();
         playerSlot.Clear();
-
         InvokeRepeating(nameof(UpdatePlayers), 1f, 1f);
     }
 
@@ -44,28 +41,19 @@ public class LobbyUIManager2Players : NetworkBehaviour
         {
             ulong clientId = clients[i].ClientId;
             playerSlot[clientId] = i;
-
             string ready = readyPlayers.Contains(clientId) ? "READY" : "NOT READY";
             if (i == 0) player1Text.text = $"Player {clientId} - {ready}";
             if (i == 1) player2Text.text = $"Player {clientId} - {ready}";
         }
 
-        // Revisar si todos están listos y activar Start
         CheckAllReady();
     }
 
-    void OnReadyClicked()
-    {
-        SetReadyServerRpc();
-    }
+    void OnReadyClicked() => SetReadyRpc();
+    void OnStartClicked() => StartGameRpc();
 
-    void OnStartClicked()
-    {
-        StartGameServerRpc();
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    void SetReadyServerRpc(ServerRpcParams rpcParams = default)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    void SetReadyRpc(RpcParams rpcParams = default)
     {
         ulong clientId = rpcParams.Receive.SenderClientId;
 
@@ -74,15 +62,20 @@ public class LobbyUIManager2Players : NetworkBehaviour
         else
             readyPlayers.Remove(clientId);
 
-        UpdateReadyStateClientRpc(readyPlayers.ToArray());
+        // Serializa ids como string separado por |
+        UpdateReadyStateClientRpc(string.Join("|", readyPlayers));
     }
 
     [ClientRpc]
-    void UpdateReadyStateClientRpc(ulong[] readyIds)
+    void UpdateReadyStateClientRpc(string readyIdsJoined)
     {
-        readyPlayers = new HashSet<ulong>(readyIds);
-
-        // Revisamos si todos los jugadores están listos
+        readyPlayers.Clear();
+        if (readyIdsJoined.Length > 0)
+        {
+            foreach (var id in readyIdsJoined.Split('|'))
+                if (ulong.TryParse(id, out ulong clientId))
+                    readyPlayers.Add(clientId);
+        }
         CheckAllReady();
     }
 
@@ -90,23 +83,12 @@ public class LobbyUIManager2Players : NetworkBehaviour
     {
         int totalPlayers = NetworkManager.Singleton.ConnectedClients.Count;
         bool allReady = totalPlayers == 2 && readyPlayers.Count == 2;
-
-        // Solo habilitar Start si hay 2 jugadores y ambos están ready
-        //if (totalPlayers == 2 && readyPlayers.Count == 2)
-        //{
-        //    startButton.gameObject.SetActive(true);
-        //    startButton.interactable = IsServer; // solo el host puede iniciar
-        //}
-        //else
-        //{
-        //    startButton.gameObject.SetActive(false);
-        //}
         startButton.gameObject.SetActive(allReady);
         startButton.interactable = allReady && IsServer;
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    void StartGameServerRpc()
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    void StartGameRpc()
     {
         if (readyPlayers.Count == 2)
         {

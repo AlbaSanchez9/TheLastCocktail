@@ -1,13 +1,13 @@
-﻿using System.Collections;
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-public class BottleSpawner : NetworkBehaviour
+public class TicketSpawner : NetworkBehaviour
 {
-    [SerializeField] private float respawnDelay = 3f;
-    [SerializeField] private string bottleName; // debe coincidir con BottleSpawnerManager
+    [SerializeField] private float respawnDelay = 0.2f;
+    [SerializeField] private string ticketName;
 
     private XRGrabInteractable grab;
     private Vector3 spawnPos;
@@ -24,7 +24,7 @@ public class BottleSpawner : NetworkBehaviour
     {
         spawnPos = transform.position;
         spawnRot = transform.rotation;
-        BottleSpawnerManager.Instance?.RegisterBottle(NetworkObjectId, bottleName);
+        TicketSpawnerManager.Instance?.RegisterTicket(NetworkObjectId, ticketName, spawnPos, spawnRot);
     }
 
     private void OnDestroy()
@@ -43,6 +43,6 @@ public class BottleSpawner : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void NotifyGrabbedRpc(Vector3 pos, Quaternion rot)
     {
-        BottleSpawnerManager.Instance?.RequestSpawn(NetworkObjectId, pos, rot, respawnDelay);
+        TicketSpawnerManager.Instance?.RequestSpawn(NetworkObjectId, pos, rot, respawnDelay);
     }
 }

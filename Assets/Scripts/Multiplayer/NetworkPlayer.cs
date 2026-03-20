@@ -25,7 +25,7 @@ public class NetworkPlayer : NetworkBehaviour
     private void Update()
     {
         if (!IsOwner) return;
-        if (VRRigReference.Singleton == null) return; // ← espera a que exista
+        if (VRRigReference.Singleton == null) return; 
 
         root.position = VRRigReference.Singleton.root.position;
         root.rotation = VRRigReference.Singleton.root.rotation;

@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class SnackFallDestroy : MonoBehaviour
@@ -21,6 +22,7 @@ public class SnackFallDestroy : MonoBehaviour
     private IEnumerator WaitThenDestroy()
     {
         yield return new WaitForSeconds(timeOnFloor);
-        Destroy(gameObject);
+        if (NetworkManager.Singleton.IsServer)
+            GetComponent<NetworkObject>().Despawn();
     }
 }

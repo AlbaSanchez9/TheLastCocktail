@@ -1,15 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
-public class Glass : MonoBehaviour
+public class Glass : NetworkBehaviour
 {
     private List<string> liquidIngredients = new List<string>();
     private List<string> solidIngredients = new List<string>();
 
-    [SerializeField] private bool isDirty;
+    private NetworkVariable<bool> isDirty = new NetworkVariable<bool>(
+        false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<Color> drinkColor = new NetworkVariable<Color>(
+        new Color(1f, 1f, 1f, 0.3f), NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<bool> liquidVisible = new NetworkVariable<bool>(
+        false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     [Header("Líquido visual")]
     [SerializeField] private GlassLiquid glassLiquid;
@@ -33,7 +39,14 @@ public class Glass : MonoBehaviour
             grab.selectEntered.AddListener(OnGrabbed);
     }
 
-    private void OnDestroy()
+    public override void OnNetworkSpawn()
+    {
+        drinkColor.OnValueChanged += (old, newColor) => glassLiquid?.SetColor(newColor);
+        liquidVisible.OnValueChanged += (old, visible) => glassLiquid?.SetVisible(visible);
+        isDirty.OnValueChanged += (old, dirty) => { if (dirty) glassLiquid?.SetVisible(false); };
+    }
+
+    private new void OnDestroy()
     {
         if (grab != null)
             grab.selectEntered.RemoveListener(OnGrabbed);
@@ -42,20 +55,18 @@ public class Glass : MonoBehaviour
     private void Update()
     {
         if (falling) return;
-
         if (transform.position.y < fallYThreshold)
         {
             falling = true;
-            Debug.Log("Vaso caído al suelo");
             StartCoroutine(WaitThenNotifyFall());
         }
     }
 
     private IEnumerator WaitThenNotifyFall()
     {
-        yield return new WaitForSeconds(timeOnFloor);
         spawner?.NotifyGlassFell(this);
-        Destroy(gameObject);
+        yield return new WaitForSeconds(timeOnFloor);
+        if (IsServer) GetComponent<NetworkObject>().Despawn();
     }
 
     private void OnGrabbed(SelectEnterEventArgs args)
@@ -66,39 +77,76 @@ public class Glass : MonoBehaviour
     public void SetSpawner(GlassSpawner s) => spawner = s;
     public GlassSpawner GetSpawner() => spawner;
 
-    // Líquidos desde PourZone
     public void AddIngredient(string ingredient)
     {
-        if (isDirty) return;
+        if (isDirty.Value) return;
+        if (!IsServer) { AddIngredientRpc(ingredient); return; }
         liquidIngredients.Add(ingredient);
-        glassLiquid?.SetVisible(true);
+        liquidVisible.Value = true;
         ValidateRealTime();
-        Debug.Log("Líquido añadido: " + ingredient);
+        SyncIngredientsClientRpc(
+            string.Join("|", liquidIngredients),
+            string.Join("|", solidIngredients)
+        );
     }
 
-    // Sólidos desde PourZone
     public void AddSolidIngredient(string ingredient)
     {
-        if (isDirty) return;
+        if (isDirty.Value) return;
+        if (!IsServer) { AddSolidIngredientRpc(ingredient); return; }
         solidIngredients.Add(ingredient);
         ValidateRealTime();
-        Debug.Log("Sólido añadido: " + ingredient);
+        SyncIngredientsClientRpc(
+            string.Join("|", liquidIngredients),
+            string.Join("|", solidIngredients)
+        );
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void AddIngredientRpc(string ingredient)
+    {
+        liquidIngredients.Add(ingredient);
+        liquidVisible.Value = true;
+        ValidateRealTime();
+        SyncIngredientsClientRpc(
+            string.Join("|", liquidIngredients),
+            string.Join("|", solidIngredients)
+        );
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void AddSolidIngredientRpc(string ingredient)
+    {
+        solidIngredients.Add(ingredient);
+        ValidateRealTime();
+        SyncIngredientsClientRpc(
+            string.Join("|", liquidIngredients),
+            string.Join("|", solidIngredients)
+        );
+    }
+
+    [ClientRpc]
+    private void SyncIngredientsClientRpc(string liquidsJoined, string solidsJoined)
+    {
+        if (IsServer) return;
+        liquidIngredients = new List<string>(
+            liquidsJoined.Length > 0 ? liquidsJoined.Split('|') : new string[0]);
+        solidIngredients = new List<string>(
+            solidsJoined.Length > 0 ? solidsJoined.Split('|') : new string[0]);
     }
 
     private void ValidateRealTime()
     {
         if (recipeManager == null) return;
         Color color = recipeManager.CheckGlassColor(this);
-        if (color != Color.clear)
-            glassLiquid?.SetColor(color);
-        else
-            glassLiquid?.SetColor(new Color(1f, 1f, 1f, 0.3f));
+        drinkColor.Value = color != Color.clear ? color : new Color(1f, 1f, 1f, 0.3f);
     }
 
     public void SetDrinkColor(Color color)
     {
-        glassLiquid?.SetVisible(true);
-        glassLiquid?.SetColor(color);
+        if (!IsServer) return;
+        liquidVisible.Value = true;
+        drinkColor.Value = color;
     }
 
     public IReadOnlyList<string> GetIngredients()
@@ -114,21 +162,24 @@ public class Glass : MonoBehaviour
 
     public void MakeDirty()
     {
-        isDirty = true;
+        if (!IsServer) return;
+        isDirty.Value = true;
         liquidIngredients.Clear();
         solidIngredients.Clear();
-        glassLiquid?.SetVisible(false);
+        SyncIngredientsClientRpc("", "");
     }
 
     public void Clean()
     {
-        isDirty = false;
+        if (!IsServer) return;
+        isDirty.Value = false;
         liquidIngredients.Clear();
         solidIngredients.Clear();
-        glassLiquid?.SetVisible(false);
+        liquidVisible.Value = false;
+        SyncIngredientsClientRpc("", "");
     }
 
-    public bool IsDirty() => isDirty;
+    public bool IsDirty() => isDirty.Value;
 
     public void LockGlass()
     {

@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
 public class WashZone : MonoBehaviour
@@ -7,14 +8,13 @@ public class WashZone : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!NetworkManager.Singleton.IsServer) return;
         if (!RoundManager.Instance.IsRoundActive()) return;
 
         Glass glass = other.GetComponent<Glass>();
         if (glass == null) return;
 
-        GlassSpawner spawner = glass.GetSpawner();
-        spawner?.NotifyGlassBeingWashed(glass);
-
+        glass.GetSpawner()?.NotifyGlassBeingWashed(glass);
         StartCoroutine(WashAndDestroy(glass));
     }
 
@@ -22,14 +22,8 @@ public class WashZone : MonoBehaviour
     {
         glass.LockGlass();
         glass.Clean();
-        Debug.Log("Lavando vaso...");
-
         yield return new WaitForSeconds(washDuration);
-
         if (glass != null)
-        {
-            Debug.Log("Vaso limpio y retirado");
-            Destroy(glass.gameObject);
-        }
+            glass.GetComponent<NetworkObject>().Despawn();
     }
 }
