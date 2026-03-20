@@ -16,17 +16,11 @@ public class ResultsButtons : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     private void QuitGameServerRpc()
     {
-        QuitClientRpc();
-    }
-
-    [ClientRpc]
-    private void QuitClientRpc()
-    {
-        Application.Quit();
-
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#endif
+        // Vuelve al lobby directamente, sin pasar por ConnectionScene
+        NetworkManager.Singleton.SceneManager.LoadScene(
+            "LobbyScene",
+            UnityEngine.SceneManagement.LoadSceneMode.Single
+        );
     }
 
     [ServerRpc(RequireOwnership = false)]

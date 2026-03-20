@@ -13,6 +13,8 @@ public class LobbyUIManager2Players : NetworkBehaviour
     public Button readyButton;
     public Button startButton;
 
+    [SerializeField] private string barSceneName = "BarScene";
+
     private Dictionary<ulong, int> playerSlot = new Dictionary<ulong, int>();
     private HashSet<ulong> readyPlayers = new HashSet<ulong>();
 
@@ -26,6 +28,10 @@ public class LobbyUIManager2Players : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        // Limpia el estado al entrar al lobby (por si viene de una partida)
+        readyPlayers.Clear();
+        playerSlot.Clear();
+
         InvokeRepeating(nameof(UpdatePlayers), 1f, 1f);
     }
 
@@ -83,17 +89,20 @@ public class LobbyUIManager2Players : NetworkBehaviour
     void CheckAllReady()
     {
         int totalPlayers = NetworkManager.Singleton.ConnectedClients.Count;
+        bool allReady = totalPlayers == 2 && readyPlayers.Count == 2;
 
         // Solo habilitar Start si hay 2 jugadores y ambos están ready
-        if (totalPlayers == 2 && readyPlayers.Count == 2)
-        {
-            startButton.gameObject.SetActive(true);
-            startButton.interactable = IsServer; // solo el host puede iniciar
-        }
-        else
-        {
-            startButton.gameObject.SetActive(false);
-        }
+        //if (totalPlayers == 2 && readyPlayers.Count == 2)
+        //{
+        //    startButton.gameObject.SetActive(true);
+        //    startButton.interactable = IsServer; // solo el host puede iniciar
+        //}
+        //else
+        //{
+        //    startButton.gameObject.SetActive(false);
+        //}
+        startButton.gameObject.SetActive(allReady);
+        startButton.interactable = allReady && IsServer;
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -102,7 +111,7 @@ public class LobbyUIManager2Players : NetworkBehaviour
         if (readyPlayers.Count == 2)
         {
             NetworkManager.Singleton.SceneManager.LoadScene(
-                "BarScene",
+                barSceneName,
                 UnityEngine.SceneManagement.LoadSceneMode.Single
             );
         }

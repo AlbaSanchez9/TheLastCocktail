@@ -15,8 +15,7 @@ using System.Collections.Generic;
 [RequireComponent(typeof(UnityTransport))]
 public class Launcher : MonoBehaviour
 {
-    [SerializeField] private string gameSceneName = "GameScene";
-    private static bool instanceExists = false;
+    [SerializeField] private string lobbySceneName = "LobbyScene";
 
     public int maxConnection = 20;
     public UnityTransport transport;
@@ -24,9 +23,10 @@ public class Launcher : MonoBehaviour
     private Lobby currentLobby;
     private float heartBeatTimer;
 
+    private static bool instanceExists = false;
+
     async void Awake()
     {
-        // Si ya existe una instancia, destruir esta
         if (instanceExists)
         {
             Destroy(gameObject);
@@ -36,7 +36,10 @@ public class Launcher : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         await UnityServices.InitializeAsync();
-        await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+        // Solo hace sign in si no está ya autenticado
+        if (!AuthenticationService.Instance.IsSignedIn)
+            await AuthenticationService.Instance.SignInAnonymouslyAsync();
 
         JoinOrCreated();
     }
@@ -49,14 +52,27 @@ public class Launcher : MonoBehaviour
 
     public async void JoinOrCreated()
     {
+        // Si ya está corriendo no hacer nada
+        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsClient)
+        {
+            Debug.Log("Ya conectado, saltando JoinOrCreated");
+            return;
+        }
+
         try
         {
             currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
-            string relayjoinCode = currentLobby.Data["JOIN_CODE"].Value;
+            string relayJoinCode = currentLobby.Data["JOIN_CODE"].Value;
 
-            JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(relayjoinCode);
-
-            transport.SetClientRelayData(allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port, allocation.AllocationIdBytes, allocation.Key, allocation.ConnectionData, allocation.HostConnectionData);
+            JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(relayJoinCode);
+            transport.SetClientRelayData(
+                allocation.RelayServer.IpV4,
+                (ushort)allocation.RelayServer.Port,
+                allocation.AllocationIdBytes,
+                allocation.Key,
+                allocation.ConnectionData,
+                allocation.HostConnectionData
+            );
 
             NetworkManager.Singleton.StartClient();
         }
@@ -68,47 +84,55 @@ public class Launcher : MonoBehaviour
 
     public async void StartAsHost()
     {
+        // Si ya está corriendo no hacer nada
+        if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsClient)
+        {
+            Debug.Log("Ya conectado, saltando StartAsHost");
+            return;
+        }
+
         Allocation allocation = await RelayService.Instance.CreateAllocationAsync(maxConnection);
         string newJoinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
-        Debug.Log(newJoinCode);
+        Debug.Log($"Join Code: {newJoinCode}");
 
-        transport.SetHostRelayData(allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port, allocation.AllocationIdBytes, allocation.Key, allocation.ConnectionData);
+        transport.SetHostRelayData(
+            allocation.RelayServer.IpV4,
+            (ushort)allocation.RelayServer.Port,
+            allocation.AllocationIdBytes,
+            allocation.Key,
+            allocation.ConnectionData
+        );
 
-        CreateLobbyOptions lobbyOptions = new CreateLobbyOptions();
-        lobbyOptions.IsPrivate = false;
-        lobbyOptions.Data = new Dictionary<string, DataObject>();
-        DataObject dataObject = new DataObject(DataObject.VisibilityOptions.Public, newJoinCode);
-        lobbyOptions.Data.Add("JOIN_CODE", dataObject);
+        CreateLobbyOptions lobbyOptions = new CreateLobbyOptions
+        {
+            IsPrivate = false,
+            Data = new Dictionary<string, DataObject>
+        {
+            { "JOIN_CODE", new DataObject(DataObject.VisibilityOptions.Public, newJoinCode) }
+        }
+        };
 
-        currentLobby = await LobbyService.Instance.CreateLobbyAsync("Lobby Name", maxConnection, lobbyOptions);
+        currentLobby = await LobbyService.Instance.CreateLobbyAsync("Lobby", maxConnection, lobbyOptions);
 
         NetworkManager.Singleton.StartHost();
     }
 
-    public async void StartAsClient()
-    {
-        currentLobby = await LobbyService.Instance.QuickJoinLobbyAsync();
-        string relayjoinCode = currentLobby.Data["JOIN_CODE"].Value;
-
-        JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(relayjoinCode);
-
-        transport.SetClientRelayData(allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port, allocation.AllocationIdBytes, allocation.Key, allocation.ConnectionData, allocation.HostConnectionData);
-
-        NetworkManager.Singleton.StartClient();
-    }
-
     private void HandleServerStarted()
     {
-        Debug.Log("Server iniciado");
+        Debug.Log("Server iniciado, cargando LobbyScene...");
+        NetworkManager.Singleton.SceneManager.LoadScene(
+            lobbySceneName,
+            LoadSceneMode.Single
+        );
     }
 
     private void OnClientConnected(ulong clientId)
     {
         if (!NetworkManager.Singleton.IsServer) return;
-
-        Debug.Log("Cliente conectado: " + clientId);
+        Debug.Log($"Cliente conectado: {clientId}");
     }
+
     void OnDestroy()
     {
         instanceExists = false;
@@ -124,11 +148,9 @@ public class Launcher : MonoBehaviour
         if (heartBeatTimer > 15)
         {
             heartBeatTimer -= 15;
-
             if (currentLobby != null && currentLobby.HostId == AuthenticationService.Instance.PlayerId)
                 LobbyService.Instance.SendHeartbeatPingAsync(currentLobby.Id);
         }
-
         heartBeatTimer += Time.deltaTime;
     }
 
@@ -136,10 +158,7 @@ public class Launcher : MonoBehaviour
     {
         if (currentLobby != null)
         {
-            try
-            {
-                await LobbyService.Instance.DeleteLobbyAsync(currentLobby.Id);
-            }
+            try { await LobbyService.Instance.DeleteLobbyAsync(currentLobby.Id); }
             catch { }
         }
     }
