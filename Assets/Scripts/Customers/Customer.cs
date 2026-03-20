@@ -34,7 +34,6 @@ public class Customer : MonoBehaviour
     [SerializeField] private float drinkOnlyChance = 0.35f;
     [SerializeField] private float snackOnlyChance = 0.20f;
 
-    [Header("Snack")]
     private SnackType snackOrder;
     private bool snackFailedAlready = false;
 
@@ -45,7 +44,6 @@ public class Customer : MonoBehaviour
     private bool patienceBonusApplied = false;
 
     [SerializeField] private TextMeshProUGUI orderText;
-
     [SerializeField] private float moveSpeed = 2f;
     private Transform exitPoint;
 
@@ -93,7 +91,6 @@ public class Customer : MonoBehaviour
             patienceBar.maxValue = patience;
 
         UpdateOrderText();
-
         StartCoroutine(RotateToTableCenter());
     }
 
@@ -109,10 +106,8 @@ public class Customer : MonoBehaviour
             dirToCenter.y = 0;
             if (dirToCenter != Vector3.zero)
             {
-                // La cara apunta a +X, hay que rotar -90 grados en Y
                 Quaternion rotation = Quaternion.LookRotation(dirToCenter);
                 transform.rotation = rotation * Quaternion.Euler(0, 90f, 0);
-                Debug.Log($"Cliente rotado hacia mesa: {transform.rotation.eulerAngles}");
             }
         }
     }
@@ -125,7 +120,6 @@ public class Customer : MonoBehaviour
 
     public void SetManager(CustomerManager m) => manager = m;
     public void SetExitPoint(Transform exit) => exitPoint = exit;
-
     public void SetTableCenter(Transform center)
     {
         tableCenter = center;
@@ -268,8 +262,11 @@ public class Customer : MonoBehaviour
         if (currentPatience <= 0f)
         {
             bool receivedPartial = (wantsDrink && drinkServed) || (wantsSnack && snackServed);
+
             if (receivedPartial)
-                SpawnMoney();
+                SpawnMoney(); // cobra solo lo que recibió
+            else
+                GameManager.Instance.ApplyLostCustomerPenalty(wantsDrink, wantsSnack, false, false);
 
             LeaveBar(false);
         }
@@ -284,19 +281,25 @@ public class Customer : MonoBehaviour
 
     private void FinishDrink()
     {
-        Debug.Log("Cliente terminó su bebida");
+        Debug.Log("Cliente terminó");
 
-        if (servedGlass != null)
+        // Solo limpia el vaso si tenía bebida
+        if (wantsDrink && servedGlass != null)
         {
             servedGlass.MakeDirty();
             servedGlass.UnlockGlass();
         }
 
         if (Random.value < stealChance)
+        {
             Debug.Log("Cliente intenta irse sin pagar!");
-        else
-            SpawnMoney();
+            GameManager.Instance.ApplyLostCustomerPenalty(wantsDrink, wantsSnack, drinkServed, snackServed);
+            state = CustomerState.FinishedDrink;
+            LeaveBar(true); // se va sin spawnar dinero
+            return;
+        }
 
+        SpawnMoney();
         state = CustomerState.FinishedDrink;
     }
 
@@ -304,12 +307,20 @@ public class Customer : MonoBehaviour
     {
         if (moneyPrefab == null) return;
 
-        Vector3 spawnPos;
+        // Cobra solo lo que realmente recibió
+        int amount = 0;
+        if (drinkServed && snackServed)
+            amount = GameManager.Instance.GetPricing().bothPrice;
+        else if (drinkServed)
+            amount = GameManager.Instance.GetPricing().drinkOnlyPrice;
+        else if (snackServed)
+            amount = GameManager.Instance.GetPricing().snackOnlyPrice;
 
+        if (amount == 0) return; // no recibió nada, no spawna dinero
+
+        Vector3 spawnPos;
         if (locationType == CustomerLocationType.Bar && barPoint != null)
-        {
             spawnPos = barPoint.position + Vector3.up * 0.1f;
-        }
         else if (tableCenter != null)
         {
             Vector3 dirToCenter = (tableCenter.position - transform.position).normalized;
@@ -317,11 +328,14 @@ public class Customer : MonoBehaviour
             spawnPos = transform.position + dirToCenter * moneyDistanceFromClient + Vector3.up * 0.1f;
         }
         else
-        {
             spawnPos = transform.position + Vector3.up * 0.1f;
-        }
 
-        spawnedMoney = Instantiate(moneyPrefab, spawnPos, Quaternion.identity);
+        GameObject moneyObj = Instantiate(moneyPrefab, spawnPos, Quaternion.identity);
+        spawnedMoney = moneyObj;
+
+        Money money = moneyObj.GetComponent<Money>();
+        if (money != null)
+            money.SetValue(amount);
     }
 
     private void CheckMoneyCollected()
@@ -336,7 +350,10 @@ public class Customer : MonoBehaviour
         manager?.CustomerLeft(this);
 
         if (!wasServed)
+        {
             RoundManager.Instance.AddLostCustomer();
+            GameManager.Instance.ApplyLostCustomerPenalty(wantsDrink, wantsSnack, drinkServed, snackServed);
+        }
 
         Destroy(gameObject);
     }

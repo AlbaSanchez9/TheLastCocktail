@@ -4,20 +4,19 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 public class Money : XRGrabInteractable
 {
-    [SerializeField] private int value = 10;
+    private int value = 0;
 
-    private GameManager gameManager;
+    public void SetValue(int amount)
+    {
+        value = amount;
+    }
 
     protected override void OnSelectEntered(SelectEnterEventArgs args)
     {
         if (!RoundManager.Instance.IsRoundActive()) return;
-
         base.OnSelectEntered(args);
-
-        gameManager = FindFirstObjectByType<GameManager>();
-
-        gameManager.AddMoney(value);
-
+        GameManager.Instance.AddMoney(value);
+        Debug.Log($"Dinero recogido: ${value}");
         Destroy(gameObject);
     }
 }
