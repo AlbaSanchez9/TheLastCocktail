@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 public class NetworkPlayer : NetworkBehaviour
@@ -8,34 +7,39 @@ public class NetworkPlayer : NetworkBehaviour
     public Transform head;
     public Transform leftHand;
     public Transform rightHand;
-    public Renderer[] meshTodisable;
+    public Renderer[] meshToDisable;
 
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
         if (IsOwner)
         {
-            foreach (var mesh in meshTodisable)
-            {
+            foreach (var mesh in meshToDisable)
                 mesh.enabled = false;
-            }
         }
     }
 
-    private void Update()
+    void Update()
     {
         if (!IsOwner) return;
-        if (VRRigReference.Singleton == null) return; 
+        if (VRRigReference.Singleton == null) return;
 
-        root.position = VRRigReference.Singleton.root.position;
-        root.rotation = VRRigReference.Singleton.root.rotation;
-        head.position = VRRigReference.Singleton.head.position;
-        head.rotation = VRRigReference.Singleton.head.rotation;
-        leftHand.position = VRRigReference.Singleton.leftHand.position;
-        leftHand.rotation = VRRigReference.Singleton.leftHand.rotation;
-        rightHand.position = VRRigReference.Singleton.rightHand.position;
-        rightHand.rotation = VRRigReference.Singleton.rightHand.rotation;
+        var rig = VRRigReference.Singleton;
+
+        // Root: posición mundial directa — NetworkTransform la sincroniza
+        root.position = rig.root.position;
+        root.rotation = rig.root.rotation;
+
+        // Cabeza y manos: posición LOCAL respecto al root del avatar
+        // Así el offset entre jugadores desaparece porque cada avatar
+        // se mueve relativo a su propio root
+        head.localPosition = rig.root.InverseTransformPoint(rig.head.position);
+        head.localRotation = Quaternion.Inverse(rig.root.rotation) * rig.head.rotation;
+
+        leftHand.localPosition = rig.root.InverseTransformPoint(rig.leftHand.position);
+        leftHand.localRotation = Quaternion.Inverse(rig.root.rotation) * rig.leftHand.rotation;
+
+        rightHand.localPosition = rig.root.InverseTransformPoint(rig.rightHand.position);
+        rightHand.localRotation = Quaternion.Inverse(rig.root.rotation) * rig.rightHand.rotation;
     }
 }
-
-

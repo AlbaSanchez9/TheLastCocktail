@@ -391,7 +391,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 42845664
+  GlobalObjectIdHash: 193311177
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -421,6 +421,7 @@ MonoBehaviour:
   player2Text: {fileID: 1180080262}
   readyButton: {fileID: 305215091}
   startButton: {fileID: 46991448}
+  barSceneName: BarScene
 --- !u!1 &130135855
 GameObject:
   m_ObjectHideFlags: 0
@@ -1489,6 +1490,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 109434732395284509, guid: 65847589f926b734d9eaed6e25f0046b, type: 3}
   m_PrefabInstance: {fileID: 987553891}
   m_PrefabAsset: {fileID: 0}
+--- !u!137 &987553894 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 109434732392105323, guid: 65847589f926b734d9eaed6e25f0046b, type: 3}
+  m_PrefabInstance: {fileID: 987553891}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &987553899
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1810,7 +1816,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 3307281521
+  GlobalObjectIdHash: 3623497005
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -1855,6 +1861,7 @@ MonoBehaviour:
   player2Text: {fileID: 1180080262}
   readyButton: {fileID: 305215091}
   startButton: {fileID: 46991448}
+  barSceneName: BarScene
 --- !u!1 &1180080260
 GameObject:
   m_ObjectHideFlags: 0
@@ -2202,6 +2209,11 @@ Transform:
 --- !u!1 &1411858847 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5686134208185362930, guid: 1fd3a7c43c8190f4d8c167ebde694364, type: 3}
+  m_PrefabInstance: {fileID: 1411858845}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &1411858848 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5686134208196863108, guid: 1fd3a7c43c8190f4d8c167ebde694364, type: 3}
   m_PrefabInstance: {fileID: 1411858845}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &1411858852
@@ -2681,6 +2693,9 @@ MonoBehaviour:
   head: {fileID: 941672218}
   leftHand: {fileID: 987553892}
   rightHand: {fileID: 1411858846}
+  localMeshesToHide:
+  - {fileID: 987553894}
+  - {fileID: 1411858848}
 --- !u!1 &1910453279
 GameObject:
   m_ObjectHideFlags: 0
@@ -2799,7 +2814,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fd778738fcbb23468c97fc99e17712a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameSceneName: BarScene
+  lobbySceneName: LobbyScene
   maxConnection: 20
   transport: {fileID: 1910453281}
 --- !u!1 &2024451485

@@ -1496,6 +1496,9 @@ MonoBehaviour:
   head: {fileID: 208970817}
   leftHand: {fileID: 735359815}
   rightHand: {fileID: 1507387286}
+  localMeshesToHide:
+  - {fileID: 735359817}
+  - {fileID: 1507387288}
 --- !u!114 &462295011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2560,6 +2563,11 @@ Transform:
 --- !u!1 &735359816 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 109434732395284509, guid: 65847589f926b734d9eaed6e25f0046b, type: 3}
+  m_PrefabInstance: {fileID: 735359814}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &735359817 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 109434732392105323, guid: 65847589f926b734d9eaed6e25f0046b, type: 3}
   m_PrefabInstance: {fileID: 735359814}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &735359822
@@ -5143,6 +5151,11 @@ Transform:
 --- !u!1 &1507387287 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5686134208185362930, guid: 1fd3a7c43c8190f4d8c167ebde694364, type: 3}
+  m_PrefabInstance: {fileID: 1507387285}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &1507387288 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5686134208196863108, guid: 1fd3a7c43c8190f4d8c167ebde694364, type: 3}
   m_PrefabInstance: {fileID: 1507387285}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &1507387292
