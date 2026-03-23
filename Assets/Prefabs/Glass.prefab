@@ -295,7 +295,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 466075412994768572}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aff27cfd5a19d2041b1592bb189f18c7, type: 3}
   m_Name: 
@@ -436,7 +436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bff81440ebfb61d49abf371e5152746d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDirty: 0
+  ShowTopMostFoldoutHeaderGroup: 1
   glassLiquid: {fileID: 5644996067162980298}
   fallYThreshold: 0.2
   timeOnFloor: 3
