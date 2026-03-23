@@ -51,8 +51,15 @@ public class KitchenBelt : MonoBehaviour
 
         if (prefabToSpawn != null)
         {
-            GameObject snackObj = Instantiate(prefabToSpawn, spawnPoint.position, Quaternion.identity);
+            GameObject snackObj = Instantiate(prefabToSpawn, spawnPoint.position, spawnPoint.rotation);
             snackObj.GetComponent<NetworkObject>().Spawn();
+
+            Rigidbody rb = snackObj.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
         }
 
         if (ticketObject != null)

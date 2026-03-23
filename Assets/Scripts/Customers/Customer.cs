@@ -252,6 +252,7 @@ public class Customer : NetworkBehaviour
 
         if (wantsDrink && servedGlass != null)
         {
+            servedGlass.DespawnSolidChildren(); 
             servedGlass.MakeDirty();
             servedGlass.UnlockGlass();
         }

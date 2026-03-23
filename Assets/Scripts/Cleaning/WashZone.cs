@@ -24,6 +24,9 @@ public class WashZone : MonoBehaviour
         glass.Clean();
         yield return new WaitForSeconds(washDuration);
         if (glass != null)
+        {
+            glass.DespawnSolidChildren();
             glass.GetComponent<NetworkObject>().Despawn();
+        }
     }
 }

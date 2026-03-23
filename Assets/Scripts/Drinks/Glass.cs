@@ -66,7 +66,11 @@ public class Glass : NetworkBehaviour
     {
         spawner?.NotifyGlassFell(this);
         yield return new WaitForSeconds(timeOnFloor);
-        if (IsServer) GetComponent<NetworkObject>().Despawn();
+        if (IsServer)
+        {
+            DespawnSolidChildren();
+            GetComponent<NetworkObject>().Despawn();
+        }
     }
 
     private void OnGrabbed(SelectEnterEventArgs args)
@@ -191,5 +195,21 @@ public class Glass : NetworkBehaviour
     {
         if (grab != null) grab.enabled = true;
         if (rb != null) rb.isKinematic = false;
+    }
+
+    public void DespawnSolidChildren()
+    {
+        if (!IsServer) return;
+
+        var children = new List<Transform>();
+        foreach (Transform child in transform)
+            children.Add(child);
+
+        foreach (Transform child in children)
+        {
+            var netObj = child.GetComponent<NetworkObject>();
+            if (netObj != null && netObj.IsSpawned)
+                netObj.Despawn();
+        }
     }
 }
