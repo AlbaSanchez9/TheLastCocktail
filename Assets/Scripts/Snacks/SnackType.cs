@@ -4,6 +4,6 @@ public enum SnackType
 {
     Olives,
     Chips,
-    Nachos,
-    Peanuts
+    Tortilla,
+    Croquetas
 }

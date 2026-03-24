@@ -7,12 +7,12 @@ public class KitchenBelt : MonoBehaviour
     [SerializeField] private Transform outputPoint;
     [SerializeField] private GameObject olivesPrefab;
     [SerializeField] private GameObject chipsPrefab;
-    [SerializeField] private GameObject nachosPrefab;
-    [SerializeField] private GameObject peanutsPrefab;
+    [SerializeField] private GameObject tortillaPrefab;
+    [SerializeField] private GameObject croquetasPrefab;
     [SerializeField] private Transform olivesOutputPoint;
     [SerializeField] private Transform chipsOutputPoint;
-    [SerializeField] private Transform nachosOutputPoint;
-    [SerializeField] private Transform peanutsOutputPoint;
+    [SerializeField] private Transform tortillaOutputPoint;
+    [SerializeField] private Transform croquetasOutputPoint;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -35,8 +35,8 @@ public class KitchenBelt : MonoBehaviour
         {
             SnackType.Olives => olivesPrefab,
             SnackType.Chips => chipsPrefab,
-            SnackType.Nachos => nachosPrefab,
-            SnackType.Peanuts => peanutsPrefab,
+            SnackType.Tortilla => tortillaPrefab,
+            SnackType.Croquetas => croquetasPrefab,
             _ => null
         };
 
@@ -44,8 +44,8 @@ public class KitchenBelt : MonoBehaviour
         {
             SnackType.Olives => olivesOutputPoint,
             SnackType.Chips => chipsOutputPoint,
-            SnackType.Nachos => nachosOutputPoint,
-            SnackType.Peanuts => peanutsOutputPoint,
+            SnackType.Tortilla => tortillaOutputPoint,
+            SnackType.Croquetas => croquetasOutputPoint,
             _ => outputPoint
         };
 

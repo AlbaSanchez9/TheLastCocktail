@@ -26,13 +26,9 @@ public class NetworkPlayer : NetworkBehaviour
 
         var rig = VRRigReference.Singleton;
 
-        // Root: posición mundial directa — NetworkTransform la sincroniza
         root.position = rig.root.position;
         root.rotation = rig.root.rotation;
 
-        // Cabeza y manos: posición LOCAL respecto al root del avatar
-        // Así el offset entre jugadores desaparece porque cada avatar
-        // se mueve relativo a su propio root
         head.localPosition = rig.root.InverseTransformPoint(rig.head.position);
         head.localRotation = Quaternion.Inverse(rig.root.rotation) * rig.head.rotation;
 
