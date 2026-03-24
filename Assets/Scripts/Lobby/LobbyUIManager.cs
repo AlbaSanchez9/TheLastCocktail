@@ -12,7 +12,7 @@ public class LobbyUIManager2Players : NetworkBehaviour
     public Button readyButton;
     public Button startButton;
 
-    [SerializeField] private string barSceneName = "BarScene";
+    [SerializeField] private string barSceneName = "EscenarioPrueba";
 
     private Dictionary<ulong, int> playerSlot = new Dictionary<ulong, int>();
     private HashSet<ulong> readyPlayers = new HashSet<ulong>();
@@ -42,8 +42,8 @@ public class LobbyUIManager2Players : NetworkBehaviour
             ulong clientId = clients[i].ClientId;
             playerSlot[clientId] = i;
             string ready = readyPlayers.Contains(clientId) ? "READY" : "NOT READY";
-            if (i == 0) player1Text.text = $"Player {clientId} - {ready}";
-            if (i == 1) player2Text.text = $"Player {clientId} - {ready}";
+            if (i == 0) player1Text.text = ready;
+            if (i == 1) player2Text.text = ready;
         }
 
         CheckAllReady();
